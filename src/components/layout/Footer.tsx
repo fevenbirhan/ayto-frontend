@@ -1,3 +1,6 @@
+
+import { Link } from "react-router-dom";
+
 export const Footer = () => {
   const socialIcons = [
     {
@@ -13,6 +16,16 @@ export const Footer = () => {
       alt: "Twitter",
     },
   ];
+
+  const handleFeatureClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href === "/#features") {
+      e.preventDefault();
+      const featuresSection = document.getElementById("features");
+      if (featuresSection) {
+        featuresSection.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
 
   return (
     <footer className="bg-[#18230F] w-full py-12">
@@ -66,18 +79,19 @@ export const Footer = () => {
 
           <div>
             <h3 className="text-white text-2xl mb-4">Services</h3>
-            <a
-              href="#"
+            <Link
+              to="/"
               className="text-[#255F38] text-xl mb-2 block hover:text-white transition-colors"
             >
               Home
-            </a>
-            <a
-              href="#features"
+            </Link>
+            <Link
+              to="/#features"
               className="text-[#255F38] text-xl block hover:text-white transition-colors"
+              onClick={(e) => handleFeatureClick(e, "/#features")}
             >
               Features
-            </a>
+            </Link>
           </div>
         </div>
       </div>
