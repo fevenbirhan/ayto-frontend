@@ -15,6 +15,16 @@ export const Header = () => {
     { label: "SignUp", href: "/register" },
   ];
 
+  const handleFeatureClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href === "/#features") {
+      e.preventDefault();
+      const featuresSection = document.getElementById("features");
+      if (featuresSection) {
+        featuresSection.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
+
   return (
     <header className="bg-[#18230F] w-full">
       <div className="max-w-none mx-auto px-6 py-4">
@@ -51,7 +61,10 @@ export const Header = () => {
                       key={item.label}
                       to={item.href}
                       className="text-white text-2xl font-bold hover:text-[#255F38] transition-colors"
-                      onClick={() => setIsOpen(false)}
+                      onClick={(e) => {
+                        handleFeatureClick(e, item.href);
+                        setIsOpen(false);
+                      }}
                     >
                       {item.label}
                     </Link>
@@ -68,6 +81,7 @@ export const Header = () => {
                 key={item.label}
                 to={item.href}
                 className="text-white text-[40px] font-bold hover:text-[#255F38] transition-colors"
+                onClick={(e) => handleFeatureClick(e, item.href)}
               >
                 {item.label}
               </Link>
