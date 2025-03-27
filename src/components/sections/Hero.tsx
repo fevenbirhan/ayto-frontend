@@ -9,7 +9,7 @@ export const Hero = () => {
         <div className="max-w-[656px]">
           <h1 className="text-white text-4xl mb-6">
             <span>Together, </span>
-            <span className="text-[#18230F] font-bold text-[40px]">
+            <span className="text-[#6C7719] font-bold text-[40px]">
               We Solve, Report
             </span>
             <span>, and Transform!</span>

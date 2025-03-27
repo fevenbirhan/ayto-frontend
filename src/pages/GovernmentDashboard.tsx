@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -25,7 +26,6 @@ import {
 // Import components we'll create
 import { ReportQueue } from "@/components/government/ReportQueue";
 import { AssignmentPanel } from "@/components/government/AssignmentPanel";
-import { AnalyticsDashboard } from "@/components/government/AnalyticsDashboard";
 import { UtilityProvidersDashboard } from "@/components/government/UtilityProvidersDashboard";
 import { MaintenanceTeamsDashboard } from "@/components/government/MaintenanceTeamsDashboard";
 import { NotificationsCenter } from "@/components/government/NotificationsCenter";
@@ -216,12 +216,6 @@ const GovernmentDashboard = () => {
                 Maintenance Teams
               </TabsTrigger>
               <TabsTrigger 
-                value="analytics" 
-                className="data-[state=active]:bg-[#255F38] data-[state=active]:text-white text-white/70"
-              >
-                Analytics
-              </TabsTrigger>
-              <TabsTrigger 
                 value="admin" 
                 className="data-[state=active]:bg-[#255F38] data-[state=active]:text-white text-white/70"
               >
@@ -327,10 +321,6 @@ const GovernmentDashboard = () => {
 
             <TabsContent value="maintenance" className="mt-0">
               <MaintenanceTeamsDashboard />
-            </TabsContent>
-
-            <TabsContent value="analytics" className="mt-0">
-              <AnalyticsDashboard />
             </TabsContent>
 
             <TabsContent value="admin" className="mt-0">

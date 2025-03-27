@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const Register = () => {
   const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isGovernment, setIsGovernment] = useState<"yes" | "no" | null>(null);
@@ -17,7 +18,7 @@ const Register = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Registration attempt with:", { fullName, password, isGovernment });
+    console.log("Registration attempt with:", { fullName, email, password, isGovernment });
     
     // Check if passwords match
     if (password !== confirmPassword) {
@@ -49,6 +50,19 @@ const Register = () => {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Enter your full name"
+                required
+                className="bg-[#1E2A13] text-white border-[#255F38]"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-white text-lg">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email address"
                 required
                 className="bg-[#1E2A13] text-white border-[#255F38]"
               />
@@ -109,7 +123,7 @@ const Register = () => {
             <Button 
               type="submit" 
               className="w-full bg-[#6C7719] text-white text-xl font-bold hover:bg-[#5a6415]"
-              disabled={!fullName || !password || !confirmPassword || !isGovernment}
+              disabled={!fullName || !email || !password || !confirmPassword || !isGovernment}
             >
               Register
             </Button>
