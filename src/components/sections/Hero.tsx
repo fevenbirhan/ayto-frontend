@@ -1,4 +1,6 @@
+
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 export const Hero = () => {
   return (
@@ -22,8 +24,9 @@ export const Hero = () => {
             <Button
               className="bg-[#6C7719] text-white text-4xl font-bold rounded px-8 py-3 hover:bg-[#5a6415]"
               size="lg"
+              asChild
             >
-              Get Started!
+              <Link to="/register">Get Started!</Link>
             </Button>
           </div>
         </div>

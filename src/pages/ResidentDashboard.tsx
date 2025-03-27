@@ -22,7 +22,7 @@ const ResidentDashboard = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-1 bg-[#27391C] dark:bg-gray-900 py-8 px-4 md:px-6">
+      <main className="flex-1 bg-[#27391C] py-8 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <h1 className="text-white text-3xl md:text-4xl font-bold">Resident Dashboard</h1>
@@ -33,13 +33,13 @@ const ResidentDashboard = () => {
                 <Input
                   type="search"
                   placeholder="Search reports..."
-                  className="pl-8 bg-[#18230F] dark:bg-gray-800 text-white border-[#255F38] dark:border-gray-700"
+                  className="pl-8 bg-[#18230F] text-white border-[#255F38]"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               <Button 
-                className="bg-[#6C7719] dark:bg-[#255F38] hover:bg-[#5a6415] dark:hover:bg-[#1e4a2b] text-white"
+                className="bg-[#6C7719] hover:bg-[#5a6415] text-white"
                 onClick={() => setShowReportForm(!showReportForm)}
               >
                 {showReportForm ? "Close Form" : "New Report"}
@@ -49,7 +49,7 @@ const ResidentDashboard = () => {
           </div>
 
           {showReportForm && (
-            <Card className="mb-8 bg-[#18230F] dark:bg-gray-800 border-[#255F38] dark:border-gray-700">
+            <Card className="mb-8 bg-[#18230F] border-[#255F38]">
               <CardContent className="pt-6">
                 <ReportForm onSubmitSuccess={() => setShowReportForm(false)} />
               </CardContent>
@@ -57,7 +57,7 @@ const ResidentDashboard = () => {
           )}
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-[#18230F] dark:bg-gray-800 border border-[#255F38] dark:border-gray-700 p-1 mb-6">
+            <TabsList className="bg-[#18230F] border border-[#255F38] p-1 mb-6">
               <TabsTrigger 
                 value="reports" 
                 className="data-[state=active]:bg-[#255F38] data-[state=active]:text-white text-white/70"
