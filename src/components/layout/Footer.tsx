@@ -31,7 +31,7 @@ export const Footer = () => {
   };
 
   return (
-    <footer className="bg-[#18230F] w-full py-12">
+    <footer className="bg-[#18230F] dark:bg-[#0F1507] w-full py-12">
       <div className="max-w-none mx-auto px-6">
         <div className="flex justify-between max-md:flex-col max-md:gap-8">
           <div>

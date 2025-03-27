@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,7 +27,7 @@ export const Header = () => {
   };
 
   return (
-    <header className="bg-[#18230F] w-full">
+    <header className="bg-[#18230F] dark:bg-[#0F1507] w-full">
       <div className="max-w-none mx-auto px-6 py-4">
         <nav className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -43,8 +44,14 @@ export const Header = () => {
             </Link>
           </div>
 
+          {/* Theme Toggle - Desktop */}
+          <div className="hidden md:flex items-center">
+            <ThemeToggle />
+          </div>
+
           {/* Mobile Menu */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center gap-4">
+            <ThemeToggle />
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-white">
@@ -53,7 +60,7 @@ export const Header = () => {
               </SheetTrigger>
               <SheetContent
                 side="right"
-                className="bg-[#18230F] border-[#255F38]"
+                className="bg-[#18230F] dark:bg-[#0F1507] border-[#255F38]"
               >
                 <nav className="flex flex-col gap-4 mt-8">
                   {navItems.map((item) => (
