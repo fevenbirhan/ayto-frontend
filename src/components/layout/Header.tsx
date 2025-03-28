@@ -12,16 +12,18 @@ export const Header = () => {
   const navItems = [
     { label: "Home", href: "/" },
     { label: "Features", href: "/#features" },
+    { label: "Analytics", href: "/#analytics" },
     { label: "Login", href: "/login" },
     { label: "SignUp", href: "/register" },
   ];
 
-  const handleFeatureClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (href === "/#features") {
+  const handleSectionClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith("/#")) {
       e.preventDefault();
-      const featuresSection = document.getElementById("features");
-      if (featuresSection) {
-        featuresSection.scrollIntoView({ behavior: "smooth" });
+      const sectionId = href.substring(2);
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth" });
       }
     }
   };
@@ -67,9 +69,9 @@ export const Header = () => {
                     <Link
                       key={item.label}
                       to={item.href}
-                      className="text-white text-2xl font-bold hover:text-[#255F38] transition-colors"
+                      className="text-white text-lg font-medium hover:text-[#255F38] transition-colors"
                       onClick={(e) => {
-                        handleFeatureClick(e, item.href);
+                        handleSectionClick(e, item.href);
                         setIsOpen(false);
                       }}
                     >
@@ -82,13 +84,13 @@ export const Header = () => {
           </div>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center gap-12">
+          <div className="hidden md:flex items-center gap-8">
             {navItems.map((item) => (
               <Link
                 key={item.label}
                 to={item.href}
-                className="text-white text-[40px] font-bold hover:text-[#255F38] transition-colors"
-                onClick={(e) => handleFeatureClick(e, item.href)}
+                className="text-white text-lg font-medium hover:text-[#255F38] transition-colors"
+                onClick={(e) => handleSectionClick(e, item.href)}
               >
                 {item.label}
               </Link>
