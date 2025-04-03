@@ -1,20 +1,50 @@
-
 import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { authService } from "@/services/auth";
+import { useToast } from "@/components/ui/use-toast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login attempt with:", { email, password });
-    // Here you would typically handle authentication
+    try {
+      setIsLoading(true);
+      const response = await authService.login({ email, password });
+      
+      // Store auth data
+      localStorage.setItem("token", response.token);
+      localStorage.setItem("userId", response.userId);
+      localStorage.setItem("role", response.role);
+      localStorage.setItem("accountStatus", response.accountStatus);
+      
+      // Redirect based on role and status
+      if (response.accountStatus !== 'ACTIVE') {
+        navigate("/pending-approval");
+      } else if (response.role === 'GOVERNMENT_OFFICE') {
+        navigate("/government-dashboard");
+      } else if (response.role === 'RESIDENT') {
+        navigate("/resident-dashboard");
+      } else {
+        navigate("/");
+      }
+      
+      toast({ title: "Success", description: "Login successful!" });
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Invalid email or password";
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -24,28 +54,28 @@ const Login = () => {
         <div className="w-full max-w-md bg-[#18230F] p-8 rounded-lg shadow-lg">
           <h1 className="text-[#255F38] text-3xl font-bold mb-6 text-center">Login</h1>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white text-lg">Email</Label>
+              <Label htmlFor="email" className="text-white">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
+                placeholder="Email address"
                 required
                 className="bg-[#1E2A13] text-white border-[#255F38]"
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white text-lg">Password</Label>
+              <Label htmlFor="password" className="text-white">Password</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
+                placeholder="Password"
                 required
                 className="bg-[#1E2A13] text-white border-[#255F38]"
               />
@@ -53,13 +83,14 @@ const Login = () => {
             
             <Button 
               type="submit" 
-              className="w-full bg-[#6C7719] text-white text-xl font-bold hover:bg-[#5a6415]"
+              className="w-full bg-[#6C7719] text-white hover:bg-[#5a6415] mt-4"
+              disabled={isLoading}
             >
-              Login
+              {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
           
-          <div className="mt-6 text-center">
+          <div className="mt-4 text-center">
             <p className="text-white">
               Don't have an account?{" "}
               <Link to="/register" className="text-[#255F38] hover:underline font-medium">

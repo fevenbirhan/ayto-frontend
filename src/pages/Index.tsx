@@ -7,7 +7,7 @@ import { HomeAnalytics } from "@/components/sections/HomeAnalytics";
 
 const Index = () => {
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-background dark:bg-[#0F1507]">
       <Header />
       <main>
         <Hero />
