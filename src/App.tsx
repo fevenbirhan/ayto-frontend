@@ -31,7 +31,7 @@ const App = () => (
                 <Route element={<ProtectedRoute allowedRoles={["RESIDENT"]} />}>
                   <Route path="/resident-dashboard" element={<ResidentDashboard />} />
                 </Route>
-                <Route element={<ProtectedRoute allowedRoles={["ADMIN", "GOVERNMENT"]} />}>
+                <Route element={<ProtectedRoute allowedRoles={["ADMIN", "GOVERNMENT_OFFICE"]} />}>
                   <Route path="/government-dashboard" element={<GovernmentDashboard />} />
                 </Route>
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
