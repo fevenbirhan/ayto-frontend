@@ -1,21 +1,38 @@
-
+// Header.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Menu, UserCircle2, LogOut, Key, Sun, Moon } from "lucide-react";
 import { Link } from "react-router-dom";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/components/ThemeProvider";
+import { Switch } from "@/components/ui/switch";
+import { ChangePasswordDialog } from "./ChangePasswordDialog";
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { isAuthenticated, userName, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
-  const navItems = [
+  const baseNavItems = [
     { label: "Home", href: "/" },
     { label: "Features", href: "/#features" },
     { label: "Analytics", href: "/#analytics" },
+  ];
+
+  const authNavItems = [
     { label: "Login", href: "/login" },
     { label: "SignUp", href: "/register" },
   ];
+
+  const navItems = baseNavItems;
 
   const handleSectionClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (href.startsWith("/#")) {
@@ -46,14 +63,8 @@ export const Header = () => {
             </Link>
           </div>
 
-          {/* Theme Toggle - Desktop */}
-          <div className="hidden md:flex items-center">
-            <ThemeToggle />
-          </div>
-
           {/* Mobile Menu */}
           <div className="md:hidden flex items-center gap-4">
-            <ThemeToggle />
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-white">
@@ -65,7 +76,7 @@ export const Header = () => {
                 className="bg-[#18230F] dark:bg-[#0F1507] border-[#255F38]"
               >
                 <nav className="flex flex-col gap-4 mt-8">
-                  {navItems.map((item) => (
+                  {[...navItems, ...(!isAuthenticated ? authNavItems : [])].map((item) => (
                     <Link
                       key={item.label}
                       to={item.href}
@@ -78,6 +89,42 @@ export const Header = () => {
                       {item.label}
                     </Link>
                   ))}
+
+                  {isAuthenticated && (
+                    <>
+                      <div className="text-white text-lg font-medium mt-6">Profile</div>
+
+                      <div className="flex flex-col gap-2">
+                        <div className="text-white">{userName}</div>
+                        <ChangePasswordDialog />
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            {theme === 'dark' ? (
+                              <Moon className="mr-2 h-4 w-4" />
+                            ) : (
+                              <Sun className="mr-2 h-4 w-4" />
+                            )}
+                            <span className="text-white">Theme</span>
+                          </div>
+                          <Switch
+                            checked={theme === 'dark'}
+                            onCheckedChange={toggleTheme}
+                            className="scale-75"
+                          />
+                        </div>
+
+                        <Button
+                          variant="ghost"
+                          className="text-red-600 flex items-center justify-start gap-2 px-0"
+                          onClick={logout}
+                        >
+                          <LogOut className="h-4 w-4" />
+                          Logout
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>
@@ -95,6 +142,61 @@ export const Header = () => {
                 {item.label}
               </Link>
             ))}
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:text-[#255F38]">
+                    <UserCircle2 className="h-6 w-6" />
+                    <span className="font-medium">{userName}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem className="flex flex-col items-start gap-1 cursor-default">
+                    <span className="font-medium">{userName}</span>
+                    <span className="text-xs text-gray-500">Logged in</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+
+                  <ChangePasswordDialog />
+
+                  <DropdownMenuItem className="cursor-pointer" onClick={(e) => e.preventDefault()}>
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center">
+                        {theme === 'dark' ? (
+                          <Moon className="mr-2 h-4 w-4" />
+                        ) : (
+                          <Sun className="mr-2 h-4 w-4" />
+                        )}
+                        <span>Theme</span>
+                      </div>
+                      <Switch
+                        checked={theme === 'dark'}
+                        onCheckedChange={toggleTheme}
+                        className="scale-75"
+                      />
+                    </div>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} className="text-red-600 cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center gap-8">
+                {authNavItems.map((item) => (
+                  <Link
+                    key={item.label}
+                    to={item.href}
+                    className="text-white text-lg font-medium hover:text-[#255F38] transition-colors"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </nav>
       </div>

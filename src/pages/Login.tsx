@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { authService } from "@/services/auth";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -14,6 +15,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login, isAuthenticated, userRole } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,22 +23,14 @@ const Login = () => {
       setIsLoading(true);
       const response = await authService.login({ email, password });
       
-      // Store auth data
+      // Store auth data (sync with AuthContext)
       localStorage.setItem("token", response.token);
       localStorage.setItem("userId", response.userId);
       localStorage.setItem("role", response.role);
       localStorage.setItem("accountStatus", response.accountStatus);
       
-      // Redirect based on role and status
-      if (response.accountStatus !== 'ACTIVE') {
-        navigate("/pending-approval");
-      } else if (response.role === 'GOVERNMENT_OFFICE') {
-        navigate("/government-dashboard");
-      } else if (response.role === 'RESIDENT') {
-        navigate("/resident-dashboard");
-      } else {
-        navigate("/");
-      }
+      // Update AuthContext state
+      await login(email, password); // This will sync isAuthenticated/userRole
       
       toast({ title: "Success", description: "Login successful!" });
     } catch (error) {
@@ -46,6 +40,20 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
+  // Redirect when auth state is confirmed
+  useEffect(() => {
+    if (isAuthenticated && userRole) {
+      const accountStatus = localStorage.getItem("accountStatus");
+      if (accountStatus !== 'ACTIVE') {
+        navigate("/pending-approval");
+      } else if (userRole === 'GOVERNMENT_OFFICE') {
+        navigate("/government-dashboard");
+      } else if (userRole === 'RESIDENT') {
+        navigate("/resident-dashboard");
+      }
+    }
+  }, [isAuthenticated, userRole, navigate]);
 
   return (
     <div className="flex flex-col min-h-screen">
