@@ -5,6 +5,7 @@ import { authService } from "@/services/auth";
 interface AuthContextType {
     token: string | null;
     userRole: string | null;
+    userName: string | null;
     login: (email: string, password: string) => Promise<void>;
     logout: () => void;
     isAuthenticated: boolean;
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
     const [userRole, setUserRole] = useState<string | null>(localStorage.getItem("role"));
+    const [userName, setUserName] = useState<string | null>(localStorage.getItem("userName"));
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
@@ -43,25 +45,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const login = async (email: string, password: string) => {
         setIsLoading(true);
         try {
-            const response = await authService.login({ email, password });
-            
-            // Store token and role
-            localStorage.setItem("token", response.data.token);
-            localStorage.setItem("role", response.data.role);
-            
-            setToken(response.data.token);
-            setUserRole(response.data.role);
-            setIsLoading(false);
-            
-            // Redirect based on role
-            if (response.data.role === "ADMIN" || response.data.role === "GOVERNMENT") {
-                navigate("/government-dashboard");
-            } else {
-                navigate("/resident-dashboard");
-            }
+          const response = await authService.login({ email, password });
+          localStorage.setItem("token", response.token);
+          localStorage.setItem("role", response.role);
+          localStorage.setItem("userName", response.name);
+          setToken(response.token);
+          setUserRole(response.role);
+          setUserName(response.name);
+          setIsLoading(false);
+          // No navigate here!
         } catch (error) {
-            setIsLoading(false);
-            throw error;
+          setIsLoading(false);
+          throw error;
         }
     };
 
@@ -69,8 +64,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const logout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("role");
+        localStorage.removeItem("userName");
         setToken(null);
         setUserRole(null);
+        setUserName(null);
         navigate("/login");
     };
 
@@ -78,6 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const value = {
         token,
         userRole,
+        userName,
         login,
         logout,
         isAuthenticated: !!token,
