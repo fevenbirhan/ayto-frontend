@@ -2,6 +2,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import axios from "axios";
+import { useState } from "react";
 
 interface ChangePasswordFormProps {
   onSuccess?: () => void;
@@ -14,24 +16,42 @@ interface FormData {
 }
 
 export const ChangePasswordForm = ({ onSuccess, onCancel }: ChangePasswordFormProps) => {
-  const { token } = useAuth();
-  const { register, handleSubmit } = useForm<FormData>();
+  const { token, userRole, userId } = useAuth();
+  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<FormData>();
+  const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (data: FormData) => {
+    setError(null);
+    if (!userId || !userRole) {
+      setError("User information is incomplete.");
+      return;
+    }
+
     try {
-      const response = await fetch("/api/auth/change-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error("Failed to change password");
+      const baseUrl = "http://localhost:8080/ayto";
+      const endpoint =
+        userRole === "RESIDENT"
+          ? `${baseUrl}/residents/${userId}/change-password`
+          : `${baseUrl}/government-offices/${userId}/change-password`;
+
+      await axios.put(
+        endpoint,
+        { newPassword: data.newPassword },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
       alert("Password changed successfully!");
+      reset();
       onSuccess?.();
-    } catch (error) {
-      alert("Error changing password");
+    } catch (err: any) {
+      setError(
+        err.response?.data?.message || "Failed to change password. Please try again."
+      );
     }
   };
 
@@ -40,25 +60,33 @@ export const ChangePasswordForm = ({ onSuccess, onCancel }: ChangePasswordFormPr
       <Input
         type="password"
         placeholder="Old Password"
-        {...register("oldPassword")}
-        required
+        {...register("oldPassword", { required: "Old password is required" })}
+        disabled={isSubmitting}
       />
       <Input
         type="password"
         placeholder="New Password"
-        {...register("newPassword")}
-        required
+        {...register("newPassword", {
+          required: "New password is required",
+          minLength: {
+            value: 6,
+            message: "New password must be at least 6 characters",
+          },
+        })}
+        disabled={isSubmitting}
       />
+      {error && <p className="text-sm text-red-600">{error}</p>}
       <div className="flex gap-2">
-        <Button type="submit" className="w-full">
-          Update Password
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? "Updating..." : "Update Password"}
         </Button>
         {onCancel && (
-          <Button 
-            type="button" 
-            variant="outline" 
+          <Button
+            type="button"
+            variant="outline"
             onClick={onCancel}
             className="w-full"
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
