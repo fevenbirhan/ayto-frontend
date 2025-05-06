@@ -6,6 +6,7 @@ interface AuthContextType {
     token: string | null;
     userRole: string | null;
     userName: string | null;
+    userId: string | null;
     login: (email: string, password: string) => Promise<void>;
     logout: () => void;
     isAuthenticated: boolean;
@@ -18,6 +19,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
     const [userRole, setUserRole] = useState<string | null>(localStorage.getItem("role"));
     const [userName, setUserName] = useState<string | null>(localStorage.getItem("userName"));
+    const [userId, setUserId] = useState<string | null>(localStorage.getItem("userId"));
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
@@ -49,9 +51,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           localStorage.setItem("token", response.token);
           localStorage.setItem("role", response.role);
           localStorage.setItem("userName", response.name);
+          localStorage.setItem("userId", response.userId);
           setToken(response.token);
           setUserRole(response.role);
           setUserName(response.name);
+          setUserId(response.userId);
           setIsLoading(false);
           // No navigate here!
         } catch (error) {
@@ -76,6 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         token,
         userRole,
         userName,
+        userId,
         login,
         logout,
         isAuthenticated: !!token,
