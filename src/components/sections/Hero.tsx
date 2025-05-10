@@ -1,8 +1,20 @@
 
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 export const Hero = () => {
+  const { isAuthenticated, userRole } = useAuth();
+  const navigate = useNavigate();
+
+  const handleDashboardRedirect = () => {
+    if (userRole === "GOVERNMENT_OFFICE") {
+      navigate("/government-dashboard");
+    } else if (userRole === "RESIDENT") {
+      navigate("/resident-dashboard");
+    }
+  };
+
   return (
     <section className="bg-[#27391C] w-full py-16">
       <div className="flex items-center justify-between max-w-none mx-auto px-6 max-md:flex-col max-md:gap-12">
@@ -30,11 +42,23 @@ export const Hero = () => {
             </Button>
           </div>
         </div>
-        <img
-          src="https://cdn.builder.io/api/v1/image/assets/TEMP/bd214360778a7736e0620f2ae92c1eaa012ec302"
-          alt="City workers"
-          className="w-[573px] h-[573px] rounded-[10px] border-[1px] border-[rgba(39,57,28,0.30)] opacity-50 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]"
-        />
+
+        <div className="flex flex-col items-end">
+          {isAuthenticated && userRole && (
+            <Button
+              className="mb-4 bg-white text-[#6C7719] text-sm font-medium rounded px-4 py-2 hover:bg-gray-100"
+              onClick={handleDashboardRedirect}
+            >
+              Dashboard
+            </Button>
+          )}
+
+          <img
+            src="https://cdn.builder.io/api/v1/image/assets/TEMP/bd214360778a7736e0620f2ae92c1eaa012ec302"
+            alt="City workers"
+            className="w-[573px] h-[573px] rounded-[10px] border-[1px] border-[rgba(39,57,28,0.30)] opacity-50 shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)]"
+          />
+        </div>
       </div>
     </section>
   );
