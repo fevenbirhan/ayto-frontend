@@ -13,6 +13,7 @@ import { ReportsList } from "@/components/dashboard/ReportsList";
 import { FeedbackSection } from "@/components/dashboard/FeedbackSection";
 import { HelpSupport } from "@/components/dashboard/HelpSupport";
 import { NotificationsPanel } from "@/components/dashboard/NotificationsPanel";
+import { CommunityReportsCards } from "@/components/CommunityReportsCards";
 
 const ResidentDashboard = () => {
   const [activeTab, setActiveTab] = useState("reports");
@@ -38,12 +39,31 @@ const ResidentDashboard = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Button 
-                className="bg-[#6C7719] hover:bg-[#5a6415] text-white"
-                onClick={() => setShowReportForm(!showReportForm)}
-              >
-                {showReportForm ? "Close Form" : "New Report"}
-              </Button>
+              
+              <div className="relative">
+                <Button
+                  className="bg-[#6C7719] hover:bg-[#5a6415] text-white"
+                  onClick={() => setShowReportForm(true)}
+                >
+                  New Report
+                </Button>
+
+                {showReportForm && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                    {/* Modal Card */}
+                    <div className="bg-[#1E2A13] p-6 rounded-2xl w-full max-w-2xl shadow-lg relative animate-fade-in">
+                      <button
+                        className="absolute top-4 right-4 text-white hover:text-gray-300"
+                        onClick={() => setShowReportForm(false)}
+                      >
+                        ✕
+                      </button>
+                      <ReportForm onSubmitSuccess={() => setShowReportForm(false)} />
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <NotificationsPanel />
             </div>
           </div>
@@ -98,10 +118,7 @@ const ResidentDashboard = () => {
             </TabsContent>
 
             <TabsContent value="community" className="mt-0">
-              <ReportsList 
-                searchQuery={searchQuery} 
-                isPersonal={false} 
-              />
+              <CommunityReportsCards searchQuery={""} isPersonal={false} />
             </TabsContent>
 
             <TabsContent value="feedback" className="mt-0">
