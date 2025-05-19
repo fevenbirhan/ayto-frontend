@@ -7,7 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { ProfileSection } from "@/components/dashboard/ProfileSection";
 import { ReportForm } from "@/components/dashboard/ReportForm";
 import { ReportsList } from "@/components/dashboard/ReportsList";
 import { FeedbackSection } from "@/components/dashboard/FeedbackSection";
@@ -97,12 +96,6 @@ const ResidentDashboard = () => {
                 Feedback & Communication
               </TabsTrigger>
               <TabsTrigger 
-                value="profile" 
-                className="data-[state=active]:bg-[#255F38] data-[state=active]:text-white text-white/70"
-              >
-                Profile
-              </TabsTrigger>
-              <TabsTrigger 
                 value="help" 
                 className="data-[state=active]:bg-[#255F38] data-[state=active]:text-white text-white/70"
               >
@@ -123,10 +116,6 @@ const ResidentDashboard = () => {
 
             <TabsContent value="feedback" className="mt-0">
               <FeedbackSection />
-            </TabsContent>
-
-            <TabsContent value="profile" className="mt-0">
-              <ProfileSection />
             </TabsContent>
 
             <TabsContent value="help" className="mt-0">
