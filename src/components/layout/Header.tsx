@@ -1,4 +1,3 @@
-// Header.tsx
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -8,16 +7,23 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
-import { Menu, UserCircle2, LogOut, Key, Sun, Moon } from "lucide-react";
+import { Menu, UserCircle2, LogOut, Key, Sun, Moon, Settings, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { Switch } from "@/components/ui/switch";
 import { ChangePasswordDialog } from "./ChangePasswordDialog";
+import { ProfileSection } from "@/components/dashboard/ProfileSection";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const { isAuthenticated, userName, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
@@ -96,6 +102,21 @@ export const Header = () => {
 
                       <div className="flex flex-col gap-2">
                         <div className="text-white">{userName}</div>
+                        
+                        <Button
+                          variant="ghost"
+                          className="text-white flex items-center justify-start gap-2 px-0"
+                          onClick={() => {
+                            setShowProfile(true);
+                            setIsOpen(false);
+                          }}
+                        >
+                          <User className="h-4 w-4" />
+                          View Profile
+                        </Button>
+
+                        <div className="text-white text-lg font-medium mt-2">Settings</div>
+                        
                         <ChangePasswordDialog />
 
                         <div className="flex items-center justify-between">
@@ -157,25 +178,43 @@ export const Header = () => {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
 
-                  <ChangePasswordDialog />
-
-                  <DropdownMenuItem className="cursor-pointer" onClick={(e) => e.preventDefault()}>
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center">
-                        {theme === 'dark' ? (
-                          <Moon className="mr-2 h-4 w-4" />
-                        ) : (
-                          <Sun className="mr-2 h-4 w-4" />
-                        )}
-                        <span>Theme</span>
-                      </div>
-                      <Switch
-                        checked={theme === 'dark'}
-                        onCheckedChange={toggleTheme}
-                        className="scale-75"
-                      />
-                    </div>
+                  <DropdownMenuItem 
+                    className="cursor-pointer"
+                    onClick={() => setShowProfile(true)}
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    <span>View Profile</span>
                   </DropdownMenuItem>
+
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuPortal>
+                      <DropdownMenuSubContent>
+                        <ChangePasswordDialog />
+
+                        <DropdownMenuItem className="cursor-pointer" onClick={(e) => e.preventDefault()}>
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center">
+                              {theme === 'dark' ? (
+                                <Moon className="mr-2 h-4 w-4" />
+                              ) : (
+                                <Sun className="mr-2 h-4 w-4" />
+                              )}
+                              <span>Theme</span>
+                            </div>
+                            <Switch
+                              checked={theme === 'dark'}
+                              onCheckedChange={toggleTheme}
+                              className="scale-75"
+                            />
+                          </div>
+                        </DropdownMenuItem>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuPortal>
+                  </DropdownMenuSub>
 
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout} className="text-red-600 cursor-pointer">
@@ -200,6 +239,16 @@ export const Header = () => {
           </div>
         </nav>
       </div>
+
+      {/* Profile Dialog */}
+      <Dialog open={showProfile} onOpenChange={setShowProfile}>
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>User Profile</DialogTitle>
+          </DialogHeader>
+          <ProfileSection />
+        </DialogContent>
+      </Dialog>
     </header>
   );
 };
