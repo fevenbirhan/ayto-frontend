@@ -1,4 +1,5 @@
-import { useState } from "react";
+// Header.tsx
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
@@ -7,58 +8,117 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuPortal,
-  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
-import { Menu, UserCircle2, LogOut, Key, Sun, Moon, Settings, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Menu, UserCircle2, LogOut, Key, Sun, Moon } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/components/ThemeProvider";
 import { Switch } from "@/components/ui/switch";
 import { ChangePasswordDialog } from "./ChangePasswordDialog";
-import { ProfileSection } from "@/components/dashboard/ProfileSection";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
-  const { isAuthenticated, userName, logout } = useAuth();
+  const { isAuthenticated, userName, logout, userRole } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const baseNavItems = [
+  // Navigation items for non-logged-in users
+  const publicNavItems = [
     { label: "Home", href: "/" },
     { label: "Features", href: "/#features" },
     { label: "Analytics", href: "/#analytics" },
   ];
 
-  const authNavItems = [
-    { label: "Login", href: "/login" },
-    { label: "SignUp", href: "/register" },
+  // Navigation items for logged-in residents
+  const residentNavItems = [
+    { label: "Home", href: "/resident-dashboard" },
+    { label: "My Reports", href: "/my-reports" },
+    { label: "Feedback", href: "/feedback" },
+    { label: "Help & Support", href: "/help-support" },
   ];
 
-  const navItems = baseNavItems;
+  // Authentication items (Login/SignUp)
+  const authNavItems = [
+    { label: "Login", href: "/login" },
+    { label: "Sign Up", href: "/register" },
+  ];
 
-  const handleSectionClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  // Determine which navigation items to show based on auth status
+  const navItems = isAuthenticated && userRole === "RESIDENT" 
+    ? residentNavItems 
+    : publicNavItems;
+
+  const handleNavigation = (href: string) => {
     if (href.startsWith("/#")) {
-      e.preventDefault();
+      // For hash links, first navigate to home if not already there
+      if (location.pathname !== "/") {
+        navigate("/");
+        // Wait for navigation to complete before scrolling
+        setTimeout(() => {
+          const sectionId = href.substring(2);
+          const section = document.getElementById(sectionId);
+          if (section) {
+            section.scrollIntoView({ behavior: "smooth" });
+          }
+        }, 100);
+      } else {
+        // If already on home page, just scroll
+        const sectionId = href.substring(2);
+        const section = document.getElementById(sectionId);
+        if (section) {
+          section.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    } else {
+      // For regular links, use React Router navigation
+      navigate(href);
+    }
+  };
+
+  const isActiveLink = (href: string) => {
+    if (href.startsWith("/#")) {
+      // For hash links, check if we're on the home page and the section is visible
+      if (location.pathname !== "/") return false;
       const sectionId = href.substring(2);
+      const section = document.getElementById(sectionId);
+      if (!section) return false;
+      const rect = section.getBoundingClientRect();
+      return rect.top >= 0 && rect.top <= window.innerHeight;
+    }
+    
+    // For regular links, check if the pathname matches and tab matches if present
+    const [path, search] = href.split("?");
+    if (search) {
+      const [param, value] = search.split("=");
+      const currentSearch = new URLSearchParams(location.search);
+      return location.pathname === path && currentSearch.get(param) === value;
+    }
+    return location.pathname === path;
+  };
+
+  // Effect to handle hash links on page load
+  useEffect(() => {
+    if (location.hash) {
+      const sectionId = location.hash.substring(1);
       const section = document.getElementById(sectionId);
       if (section) {
         section.scrollIntoView({ behavior: "smooth" });
       }
     }
-  };
+  }, [location]);
 
   return (
-    <header className="bg-[#18230F] dark:bg-[#0F1507] w-full">
+    <header className="bg-[#1A1A1A] border-b border-[#404040] w-full">
       <div className="max-w-none mx-auto px-6 py-4">
         <nav className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Link to="/" className="flex items-center gap-2">
+            <Link 
+              to={isAuthenticated && userRole === "RESIDENT" ? "/resident-dashboard" : "/"} 
+              className="flex items-center gap-2"
+            >
               <div className="text-[40px] font-bold">
-                <span className="text-[#255F38]">AY</span>
+                <span className="text-[#3B82F6]">AY</span>
                 <span className="text-white">TO</span>
               </div>
               <img
@@ -70,7 +130,7 @@ export const Header = () => {
           </div>
 
           {/* Mobile Menu */}
-          <div className="md:hidden flex items-center gap-4">
+          <div className="md:hidden">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-white">
@@ -79,46 +139,43 @@ export const Header = () => {
               </SheetTrigger>
               <SheetContent
                 side="right"
-                className="bg-[#18230F] dark:bg-[#0F1507] border-[#255F38]"
+                className="bg-[#1A1A1A] border-[#404040]"
               >
                 <nav className="flex flex-col gap-4 mt-8">
-                  {[...navItems, ...(!isAuthenticated ? authNavItems : [])].map((item) => (
-                    <Link
+                  {navItems.map((item) => (
+                    <button
                       key={item.label}
-                      to={item.href}
-                      className="text-white text-lg font-medium hover:text-[#255F38] transition-colors"
-                      onClick={(e) => {
-                        handleSectionClick(e, item.href);
+                      onClick={() => {
+                        handleNavigation(item.href);
                         setIsOpen(false);
                       }}
+                      className={`text-left text-white text-lg font-medium hover:text-[#3B82F6] transition-colors ${
+                        isActiveLink(item.href) ? "text-[#3B82F6] border-b-2 border-[#3B82F6]" : ""
+                      }`}
                     >
                       {item.label}
-                    </Link>
+                    </button>
+                  ))}
+
+                  {!isAuthenticated && authNavItems.map((item) => (
+                    <button
+                      key={item.label}
+                      onClick={() => {
+                        handleNavigation(item.href);
+                        setIsOpen(false);
+                      }}
+                      className="text-left text-white text-lg font-medium hover:text-[#3B82F6] transition-colors"
+                    >
+                      {item.label}
+                    </button>
                   ))}
 
                   {isAuthenticated && (
                     <>
                       <div className="text-white text-lg font-medium mt-6">Profile</div>
-
                       <div className="flex flex-col gap-2">
                         <div className="text-white">{userName}</div>
-                        
-                        <Button
-                          variant="ghost"
-                          className="text-white flex items-center justify-start gap-2 px-0"
-                          onClick={() => {
-                            setShowProfile(true);
-                            setIsOpen(false);
-                          }}
-                        >
-                          <User className="h-4 w-4" />
-                          View Profile
-                        </Button>
-
-                        <div className="text-white text-lg font-medium mt-2">Settings</div>
-                        
                         <ChangePasswordDialog />
-
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             {theme === 'dark' ? (
@@ -134,7 +191,6 @@ export const Header = () => {
                             className="scale-75"
                           />
                         </div>
-
                         <Button
                           variant="ghost"
                           className="text-red-600 flex items-center justify-start gap-2 px-0"
@@ -154,69 +210,50 @@ export const Header = () => {
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-8">
             {navItems.map((item) => (
-              <Link
+              <button
                 key={item.label}
-                to={item.href}
-                className="text-white text-lg font-medium hover:text-[#255F38] transition-colors"
-                onClick={(e) => handleSectionClick(e, item.href)}
+                onClick={() => handleNavigation(item.href)}
+                className={`text-white text-lg font-medium hover:text-[#3B82F6] transition-colors ${
+                  isActiveLink(item.href) ? "text-[#3B82F6] border-b-2 border-[#3B82F6]" : ""
+                }`}
               >
                 {item.label}
-              </Link>
+              </button>
             ))}
+            
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:text-[#255F38]">
+                  <Button variant="ghost" className="flex items-center gap-2 text-white hover:text-[#3B82F6]">
                     <UserCircle2 className="h-6 w-6" />
                     <span className="font-medium">{userName}</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-56 bg-[#2D2D2D] border-[#404040]">
                   <DropdownMenuItem className="flex flex-col items-start gap-1 cursor-default">
-                    <span className="font-medium">{userName}</span>
-                    <span className="text-xs text-gray-500">Logged in</span>
+                    <span className="font-medium text-white">{userName}</span>
+                    <span className="text-xs text-[#A3A3A3]">Logged in</span>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-
-                  <DropdownMenuItem 
-                    className="cursor-pointer"
-                    onClick={() => setShowProfile(true)}
-                  >
-                    <User className="mr-2 h-4 w-4" />
-                    <span>View Profile</span>
+                  <DropdownMenuSeparator className="bg-[#404040]" />
+                  <ChangePasswordDialog />
+                  <DropdownMenuItem className="cursor-pointer" onClick={(e) => e.preventDefault()}>
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center">
+                        {theme === 'dark' ? (
+                          <Moon className="mr-2 h-4 w-4" />
+                        ) : (
+                          <Sun className="mr-2 h-4 w-4" />
+                        )}
+                        <span className="text-white">Theme</span>
+                      </div>
+                      <Switch
+                        checked={theme === 'dark'}
+                        onCheckedChange={toggleTheme}
+                        className="scale-75"
+                      />
+                    </div>
                   </DropdownMenuItem>
-
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuPortal>
-                      <DropdownMenuSubContent>
-                        <ChangePasswordDialog />
-
-                        <DropdownMenuItem className="cursor-pointer" onClick={(e) => e.preventDefault()}>
-                          <div className="flex items-center justify-between w-full">
-                            <div className="flex items-center">
-                              {theme === 'dark' ? (
-                                <Moon className="mr-2 h-4 w-4" />
-                              ) : (
-                                <Sun className="mr-2 h-4 w-4" />
-                              )}
-                              <span>Theme</span>
-                            </div>
-                            <Switch
-                              checked={theme === 'dark'}
-                              onCheckedChange={toggleTheme}
-                              className="scale-75"
-                            />
-                          </div>
-                        </DropdownMenuItem>
-                      </DropdownMenuSubContent>
-                    </DropdownMenuPortal>
-                  </DropdownMenuSub>
-
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="bg-[#404040]" />
                   <DropdownMenuItem onClick={logout} className="text-red-600 cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Logout</span>
@@ -226,29 +263,19 @@ export const Header = () => {
             ) : (
               <div className="flex items-center gap-8">
                 {authNavItems.map((item) => (
-                  <Link
+                  <button
                     key={item.label}
-                    to={item.href}
-                    className="text-white text-lg font-medium hover:text-[#255F38] transition-colors"
+                    onClick={() => handleNavigation(item.href)}
+                    className="text-white text-lg font-medium hover:text-[#3B82F6] transition-colors"
                   >
                     {item.label}
-                  </Link>
+                  </button>
                 ))}
               </div>
             )}
           </div>
         </nav>
       </div>
-
-      {/* Profile Dialog */}
-      <Dialog open={showProfile} onOpenChange={setShowProfile}>
-        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>User Profile</DialogTitle>
-          </DialogHeader>
-          <ProfileSection />
-        </DialogContent>
-      </Dialog>
     </header>
   );
 };

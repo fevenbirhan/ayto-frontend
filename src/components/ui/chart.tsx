@@ -353,6 +353,17 @@ function getPayloadConfigFromPayload(
     : config[key as keyof typeof config]
 }
 
+export const COLORS = [
+  '#3B82F6', // Blue
+  '#60A5FA', // Light Blue
+  '#93C5FD', // Lighter Blue
+  '#2563EB', // Dark Blue
+  '#1D4ED8', // Darker Blue
+  '#7DD3FC', // Sky Blue
+  '#0EA5E9', // Bright Blue
+  '#0284C7', // Deep Blue
+];
+
 export {
   ChartContainer,
   ChartTooltip,

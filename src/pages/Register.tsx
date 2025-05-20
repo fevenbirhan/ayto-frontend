@@ -14,71 +14,58 @@ const Register = () => {
     firstName: "",
     lastName: "",
     email: "",
-    password: "",
-    confirmPassword: "",
     phoneNumber: "",
     nationalId: "",
-    location: "",
-    description: ""
+    password: "",
+    confirmPassword: "",
+    userType: "resident",
   });
-  
-  const [userType, setUserType] = useState<"resident"|"government">("resident");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (formData.password !== formData.confirmPassword) {
-      toast({ title: "Error", description: "Passwords don't match!", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
       return;
     }
 
     try {
       setIsLoading(true);
-      
-      if (userType === "government") {
-        await authService.registerGovernment({
-          name: `${formData.firstName} ${formData.lastName}`,
-          email: formData.email,
-          password: formData.password,
-          phoneNumber: formData.phoneNumber,
-          location: formData.location,
-          description: formData.description
-        });
-      } else {
-        await authService.registerResident({
-          name: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          password: formData.password,
-          phoneNumber: formData.phoneNumber,
-          nationalId: formData.nationalId
-        });
-      }
-
-      toast({ title: "Success", description: "Registration successful! Please login." });
+      await authService.register(formData);
+      toast({
+        title: "Success",
+        description: "Registration successful! Please wait for approval.",
+      });
       navigate("/login");
     } catch (error) {
-      const errorMessage = error.response?.data?.message || "Registration failed. Please try again.";
-      toast({ title: "Error", description: errorMessage, variant: "destructive" });
+      const errorMessage = error.response?.data?.message || "Registration failed";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-1 flex items-center justify-center bg-[#27391C] py-16">
-        <div className="w-full max-w-md bg-[#18230F] p-8 rounded-lg shadow-lg">
-          <h1 className="text-[#255F38] text-3xl font-bold mb-6 text-center">Register</h1>
+      <main className="flex-1 flex items-center justify-center bg-[#1A1A1A] py-16">
+        <div className="w-full max-w-md bg-[#2D2D2D] p-8 rounded-lg shadow-lg">
+          <h1 className="text-white text-3xl font-bold mb-6 text-center">Register</h1>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -86,36 +73,39 @@ const Register = () => {
                 <Label htmlFor="firstName" className="text-white">First Name</Label>
                 <Input
                   id="firstName"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
+                  name="firstName"
                   placeholder="First name"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className="bg-[#1A1A1A] text-white border-[#404040]"
                   required
-                  className="bg-[#1E2A13] text-white border-[#255F38]"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lastName" className="text-white">Last Name</Label>
                 <Input
                   id="lastName"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
+                  name="lastName"
                   placeholder="Last name"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className="bg-[#1A1A1A] text-white border-[#404040]"
                   required
-                  className="bg-[#1E2A13] text-white border-[#255F38]"
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="email" className="text-white">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
-                value={formData.email}
-                onChange={handleInputChange}
                 placeholder="Email address"
+                value={formData.email}
+                onChange={handleChange}
+                className="bg-[#1A1A1A] text-white border-[#404040]"
                 required
-                className="bg-[#1E2A13] text-white border-[#255F38]"
               />
             </div>
 
@@ -123,87 +113,62 @@ const Register = () => {
               <Label htmlFor="phoneNumber" className="text-white">Phone Number</Label>
               <Input
                 id="phoneNumber"
+                name="phoneNumber"
                 type="tel"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
                 placeholder="Phone number"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                className="bg-[#1A1A1A] text-white border-[#404040]"
                 required
-                className="bg-[#1E2A13] text-white border-[#255F38]"
               />
             </div>
-            
-            {userType === "resident" && (
-              <div className="space-y-2">
-                <Label htmlFor="nationalId" className="text-white">National ID</Label>
-                <Input
-                  id="nationalId"
-                  value={formData.nationalId}
-                  onChange={handleInputChange}
-                  placeholder="National ID"
-                  required
-                  className="bg-[#1E2A13] text-white border-[#255F38]"
-                />
-              </div>
-            )}
-            
-            {userType === "government" && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="location" className="text-white">Location</Label>
-                  <Input
-                    id="location"
-                    value={formData.location}
-                    onChange={handleInputChange}
-                    placeholder="Office location"
-                    required
-                    className="bg-[#1E2A13] text-white border-[#255F38]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description" className="text-white">Description</Label>
-                  <Input
-                    id="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    placeholder="Office description"
-                    required
-                    className="bg-[#1E2A13] text-white border-[#255F38]"
-                  />
-                </div>
-              </>
-            )}
-            
+
+            <div className="space-y-2">
+              <Label htmlFor="nationalId" className="text-white">National ID</Label>
+              <Input
+                id="nationalId"
+                name="nationalId"
+                placeholder="National ID"
+                value={formData.nationalId}
+                onChange={handleChange}
+                className="bg-[#1A1A1A] text-white border-[#404040]"
+                required
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="password" className="text-white">Password</Label>
               <Input
                 id="password"
+                name="password"
                 type="password"
-                value={formData.password}
-                onChange={handleInputChange}
                 placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                className="bg-[#1A1A1A] text-white border-[#404040]"
                 required
-                className="bg-[#1E2A13] text-white border-[#255F38]"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="confirmPassword" className="text-white">Confirm Password</Label>
               <Input
                 id="confirmPassword"
+                name="confirmPassword"
                 type="password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
                 placeholder="Confirm password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className="bg-[#1A1A1A] text-white border-[#404040]"
                 required
-                className="bg-[#1E2A13] text-white border-[#255F38]"
               />
             </div>
-            
+
             <div className="space-y-2 pt-2">
               <Label className="text-white">User Type</Label>
-              <RadioGroup 
-                value={userType}
-                onValueChange={(value) => setUserType(value as "resident" | "government")}
+              <RadioGroup
+                value={formData.userType}
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, userType: value }))}
                 className="flex gap-4"
               >
                 <div className="flex items-center space-x-2">
@@ -216,20 +181,20 @@ const Register = () => {
                 </div>
               </RadioGroup>
             </div>
-            
+
             <Button 
               type="submit" 
-              className="w-full bg-[#6C7719] text-white hover:bg-[#5a6415] mt-4"
+              className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white mt-4"
               disabled={isLoading}
             >
               {isLoading ? "Registering..." : "Register"}
             </Button>
           </form>
-          
+
           <div className="mt-4 text-center">
             <p className="text-white">
               Already have an account?{" "}
-              <Link to="/login" className="text-[#255F38] hover:underline font-medium">
+              <Link to="/login" className="text-[#3B82F6] hover:underline font-medium">
                 Login here
               </Link>
             </p>
@@ -242,3 +207,4 @@ const Register = () => {
 };
 
 export default Register;
+    

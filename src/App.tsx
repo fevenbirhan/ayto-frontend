@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +7,9 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ResidentDashboard from "./pages/ResidentDashboard";
+import MyReports from "./pages/MyReports";
+import Feedback from "./pages/Feedback";
+import HelpSupport from "./pages/HelpSupport";
 import GovernmentDashboard from "./pages/GovernmentDashboard";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "./components/ThemeProvider";
@@ -30,6 +32,9 @@ const App = () => (
                 <Route path="/register" element={<Register />} />
                 <Route element={<ProtectedRoute allowedRoles={["RESIDENT"]} />}>
                   <Route path="/resident-dashboard" element={<ResidentDashboard />} />
+                  <Route path="/my-reports" element={<MyReports />} />
+                  <Route path="/feedback" element={<Feedback />} />
+                  <Route path="/help-support" element={<HelpSupport />} />
                 </Route>
                 <Route element={<ProtectedRoute allowedRoles={["ADMIN", "GOVERNMENT_OFFICE"]} />}>
                   <Route path="/government-dashboard" element={<GovernmentDashboard />} />
