@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,45 +7,12 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ReportForm } from "@/components/dashboard/ReportForm";
 import { NotificationsPanel } from "@/components/dashboard/NotificationsPanel";
-import { CommunityReportsCards } from "@/components/CommunityReportsCards";
-import { useToast } from "@/components/ui/use-toast";
+import { ReportsList } from "@/components/dashboard/ReportsList";
 
-const ResidentDashboard = () => {
-  const { toast } = useToast();
+const MyReports = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showReportForm, setShowReportForm] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Effect to handle initial loading
-  useEffect(() => {
-    const initializeDashboard = async () => {
-      try {
-        // Add any initialization logic here (e.g., fetching initial data)
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error initializing dashboard:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load dashboard. Please try again.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-      }
-    };
-
-    initializeDashboard();
-  }, [toast]);
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col min-h-screen bg-[#1A1A1A]">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-white text-xl">Loading dashboard...</div>
-        </main>
-      </div>
-    );
-  }
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -53,7 +20,7 @@ const ResidentDashboard = () => {
       <main className="flex-1 bg-[#1A1A1A] py-8 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <h1 className="text-white text-3xl md:text-4xl font-bold">Resident Dashboard</h1>
+            <h1 className="text-white text-3xl md:text-4xl font-bold">My Reports</h1>
             
             <div className="flex items-center gap-3 w-full md:w-auto">
               <div className="relative flex-1 md:w-64">
@@ -102,7 +69,7 @@ const ResidentDashboard = () => {
             </Card>
           )}
 
-          <CommunityReportsCards searchQuery={searchQuery} isPersonal={false} />
+          <ReportsList searchQuery={searchQuery} isPersonal={true} />
         </div>
       </main>
       <Footer />
@@ -110,4 +77,4 @@ const ResidentDashboard = () => {
   );
 };
 
-export default ResidentDashboard;
+export default MyReports; 

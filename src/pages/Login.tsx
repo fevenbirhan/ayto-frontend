@@ -50,17 +50,18 @@ const Login = () => {
       } else if (userRole === 'GOVERNMENT_OFFICE') {
         navigate("/government-dashboard");
       } else if (userRole === 'RESIDENT') {
-        navigate("/resident-dashboard");
+        navigate("/resident-dashboard?tab=community");
       }
     }
   }, [isAuthenticated, userRole, navigate]);
 
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-1 flex items-center justify-center bg-[#27391C] py-16">
-        <div className="w-full max-w-md bg-[#18230F] p-8 rounded-lg shadow-lg">
-          <h1 className="text-[#255F38] text-3xl font-bold mb-6 text-center">Login</h1>
+      <main className="flex-1 flex items-center justify-center bg-[#1A1A1A] py-16">
+        <div className="w-full max-w-md bg-[#2D2D2D] p-8 rounded-lg shadow-lg">
+          <h1 className="text-white text-3xl font-bold mb-6 text-center">Login</h1>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -68,11 +69,11 @@ const Login = () => {
               <Input
                 id="email"
                 type="email"
+                placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email address"
+                className="bg-[#1A1A1A] text-white border-[#404040]"
                 required
-                className="bg-[#1E2A13] text-white border-[#255F38]"
               />
             </div>
             
@@ -81,17 +82,17 @@ const Login = () => {
               <Input
                 id="password"
                 type="password"
+                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
+                className="bg-[#1A1A1A] text-white border-[#404040]"
                 required
-                className="bg-[#1E2A13] text-white border-[#255F38]"
               />
             </div>
             
             <Button 
               type="submit" 
-              className="w-full bg-[#6C7719] text-white hover:bg-[#5a6415] mt-4"
+              className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white mt-4"
               disabled={isLoading}
             >
               {isLoading ? "Logging in..." : "Login"}
@@ -101,7 +102,7 @@ const Login = () => {
           <div className="mt-4 text-center">
             <p className="text-white">
               Don't have an account?{" "}
-              <Link to="/register" className="text-[#255F38] hover:underline font-medium">
+              <Link to="/register" className="text-[#3B82F6] hover:underline font-medium">
                 Register here
               </Link>
             </p>
