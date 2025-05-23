@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { PageContent } from "@/components/layout/PageContent";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
@@ -40,17 +41,19 @@ const ResidentDashboard = () => {
     return (
       <div className="flex flex-col min-h-screen bg-[#1A1A1A]">
         <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <div className="text-white text-xl">Loading dashboard...</div>
-        </main>
+        <PageContent>
+          <div className="flex items-center justify-center">
+            <div className="text-white text-xl">Loading dashboard...</div>
+          </div>
+        </PageContent>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-[#1A1A1A]">
       <Header />
-      <main className="flex-1 bg-[#1A1A1A] py-8 px-4 md:px-6">
+      <PageContent>
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <h1 className="text-white text-3xl md:text-4xl font-bold">Resident Dashboard</h1>
@@ -104,7 +107,7 @@ const ResidentDashboard = () => {
 
           <CommunityReportsCards searchQuery={searchQuery} isPersonal={false} />
         </div>
-      </main>
+      </PageContent>
       <Footer />
     </div>
   );

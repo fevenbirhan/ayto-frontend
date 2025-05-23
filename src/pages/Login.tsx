@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { PageContent } from "@/components/layout/PageContent";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -55,11 +56,10 @@ const Login = () => {
     }
   }, [isAuthenticated, userRole, navigate]);
 
-
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <main className="flex-1 flex items-center justify-center bg-[#1A1A1A] py-16">
+      <PageContent className="flex items-center justify-center">
         <div className="w-full max-w-md bg-[#2D2D2D] p-8 rounded-lg shadow-lg">
           <h1 className="text-white text-3xl font-bold mb-6 text-center">Login</h1>
           
@@ -108,7 +108,7 @@ const Login = () => {
             </p>
           </div>
         </div>
-      </main>
+      </PageContent>
       <Footer />
     </div>
   );
