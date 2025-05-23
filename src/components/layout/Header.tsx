@@ -109,7 +109,7 @@ export const Header = () => {
   }, [location]);
 
   return (
-    <header className="bg-[#1A1A1A] border-b border-[#404040] w-full">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#1A1A1A] border-b border-[#404040] w-full">
       <div className="max-w-none mx-auto px-6 py-4">
         <nav className="flex items-center justify-between">
           <div className="flex items-center gap-2">

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,16 +11,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MapPin, Upload, X } from "lucide-react";
+import { LocationPicker } from "@/components/maps/LocationPicker";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ReportFormProps {
   onSubmitSuccess: () => void;
 }
 
 export const ReportForm = ({ onSubmitSuccess }: ReportFormProps) => {
+  const { toast } = useToast();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState<{ lat: number; lng: number; address?: string } | null>(null);
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
 
@@ -45,7 +47,6 @@ export const ReportForm = ({ onSubmitSuccess }: ReportFormProps) => {
     const newImages = [...images];
     const newImageUrls = [...imagePreviewUrls];
     
-    // Revoke object URL to avoid memory leaks
     URL.revokeObjectURL(newImageUrls[index]);
     
     newImages.splice(index, 1);
@@ -58,22 +59,40 @@ export const ReportForm = ({ onSubmitSuccess }: ReportFormProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // In a real app, this would save the report to the database
-    console.log({ title, description, category, location, images });
+    if (!location) {
+      toast({
+        title: "Error",
+        description: "Please select a location on the map",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    // Reset form
+    console.log({ 
+      title, 
+      description, 
+      category, 
+      location: {
+        lat: location.lat,
+        lng: location.lng,
+        address: location.address
+      }, 
+      images 
+    });
+    
     setTitle("");
     setDescription("");
     setCategory("");
-    setLocation("");
+    setLocation(null);
     setImages([]);
     setImagePreviewUrls([]);
     
-    // Notify parent component
     onSubmitSuccess();
     
-    // Show success message
-    alert("Report submitted successfully!");
+    toast({
+      title: "Success",
+      description: "Report submitted successfully",
+    });
   };
 
   const categories = [
@@ -88,135 +107,129 @@ export const ReportForm = ({ onSubmitSuccess }: ReportFormProps) => {
   ];
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <h2 className="text-2xl font-bold text-white mb-4">Submit New Report</h2>
-      
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="title" className="text-white">Title of Issue</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Pothole on Main Street"
-              required
-              className="bg-[#1E2A13] dark:bg-gray-700 text-white border-[#255F38] dark:border-gray-600"
-            />
-          </div>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center p-4 overflow-y-auto">
+      <div className="w-full max-w-4xl my-8">
+        <form onSubmit={handleSubmit} className="space-y-6 p-6 bg-[#1A1A1A] rounded-lg shadow-xl">
+          <h2 className="text-2xl font-bold text-white mb-4">Submit New Report</h2>
           
-          <div className="space-y-2">
-            <Label htmlFor="category" className="text-white">Category</Label>
-            <Select required value={category} onValueChange={setCategory}>
-              <SelectTrigger 
-                id="category" 
-                className="bg-[#1E2A13] dark:bg-gray-700 text-white border-[#255F38] dark:border-gray-600"
-              >
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#1E2A13] dark:bg-gray-700 text-white border-[#255F38] dark:border-gray-600">
-                {categories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="description" className="text-white">Description</Label>
-          <Textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Please provide details about the issue..."
-            required
-            className="min-h-[120px] bg-[#1E2A13] dark:bg-gray-700 text-white border-[#255F38] dark:border-gray-600"
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="location" className="text-white">Location</Label>
-          <div className="relative">
-            <MapPin className="absolute left-2.5 top-2.5 h-4 w-4 text-white/60" />
-            <Input
-              id="location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="Address or location description"
-              required
-              className="pl-8 bg-[#1E2A13] dark:bg-gray-700 text-white border-[#255F38] dark:border-gray-600"
-            />
-          </div>
-          <p className="text-sm text-white/60">
-            Use an address, intersection, or description that identifies the location
-          </p>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="images" className="text-white">Upload Images/Videos</Label>
-          <div className="flex items-center gap-3">
-            <label 
-              htmlFor="images" 
-              className="cursor-pointer flex items-center gap-2 px-3 py-2 rounded-md bg-[#1E2A13] dark:bg-gray-700 border border-dashed border-[#255F38] dark:border-gray-600 text-white hover:bg-[#255F38]/10 transition-colors"
-            >
-              <Upload className="h-4 w-4" />
-              <span>Add Files</span>
-              <Input
-                id="images"
-                type="file"
-                onChange={handleImageChange}
-                accept="image/*,video/*"
-                multiple
-                className="hidden"
-              />
-            </label>
-            <span className="text-sm text-white/60">
-              Attach photos or videos as evidence (optional)
-            </span>
-          </div>
-          
-          {imagePreviewUrls.length > 0 && (
-            <div className="flex flex-wrap gap-3 mt-3">
-              {imagePreviewUrls.map((url, index) => (
-                <div key={index} className="relative group">
-                  <img 
-                    src={url} 
-                    alt={`Preview ${index + 1}`}
-                    className="h-20 w-20 object-cover rounded-md border border-[#255F38] dark:border-gray-600"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-white text-sm font-medium">Title of Issue</Label>
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g., Pothole on Main Street"
+                  required
+                  className="bg-[#2D2D2D] text-white border-[#404040] focus:border-[#6C7719] focus:ring-1 focus:ring-[#6C7719]"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="category" className="text-white text-sm font-medium">Category</Label>
+                <Select required value={category} onValueChange={setCategory}>
+                  <SelectTrigger 
+                    id="category" 
+                    className="bg-[#2D2D2D] text-white border-[#404040] focus:border-[#6C7719] focus:ring-1 focus:ring-[#6C7719]"
                   >
-                    <X className="h-3 w-3 text-white" />
-                  </button>
-                </div>
-              ))}
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#2D2D2D] text-white border-[#404040]">
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat} className="hover:bg-[#404040]">
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          )}
-        </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-white text-sm font-medium">Description</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Please provide details about the issue..."
+                required
+                className="min-h-[120px] bg-[#2D2D2D] text-white border-[#404040] focus:border-[#6C7719] focus:ring-1 focus:ring-[#6C7719]"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-white text-sm font-medium">Location</Label>
+              <LocationPicker
+                onLocationSelect={setLocation}
+                className="mt-2"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="images" className="text-white text-sm font-medium">Upload Images/Videos</Label>
+              <div className="flex items-center gap-3">
+                <label 
+                  htmlFor="images" 
+                  className="cursor-pointer flex items-center gap-2 px-3 py-2 rounded-md bg-[#2D2D2D] border border-dashed border-[#404040] text-white hover:bg-[#404040] transition-colors"
+                >
+                  <Upload className="h-4 w-4" />
+                  <span>Add Files</span>
+                  <Input
+                    id="images"
+                    type="file"
+                    onChange={handleImageChange}
+                    accept="image/*,video/*"
+                    multiple
+                    className="hidden"
+                  />
+                </label>
+                <span className="text-sm text-[#A3A3A3]">
+                  Attach photos or videos as evidence (optional)
+                </span>
+              </div>
+              
+              {imagePreviewUrls.length > 0 && (
+                <div className="flex flex-wrap gap-3 mt-3">
+                  {imagePreviewUrls.map((url, index) => (
+                    <div key={index} className="relative group">
+                      <img 
+                        src={url} 
+                        alt={`Preview ${index + 1}`}
+                        className="h-20 w-20 object-cover rounded-md border border-[#404040]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3 text-white" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex justify-end space-x-4 pt-6 border-t border-[#404040]">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onSubmitSuccess}
+              className="border-[#404040] text-white hover:bg-[#404040]"
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              className="bg-[#6C7719] hover:bg-[#5a6415] text-white"
+            >
+              Submit Report
+            </Button>
+          </div>
+        </form>
       </div>
-      
-      <div className="flex justify-end gap-3">
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={onSubmitSuccess}
-          className="border-[#255F38] dark:border-gray-700 text-white hover:bg-[#255F38]/20 dark:hover:bg-gray-700/50"
-        >
-          Cancel
-        </Button>
-        <Button 
-          type="submit" 
-          className="bg-[#6C7719] dark:bg-[#255F38] hover:bg-[#5a6415] dark:hover:bg-[#1e4a2b] text-white"
-        >
-          Submit Report
-        </Button>
-      </div>
-    </form>
+    </div>
   );
 };
