@@ -115,7 +115,7 @@ const Login = () => {
           <div className="mt-4 text-center">
             <p className="text-white">
               Don't have an account?{" "}
-              <Link to="/register" className="text-[#3B82F6] hover:underline font-medium">
+              <Link to="/verify-email" className="text-[#3B82F6] hover:underline font-medium">
                 Register here
               </Link>
             </p>

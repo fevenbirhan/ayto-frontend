@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import EmailVerification from "./pages/EmailVerification";
 import ResidentDashboard from "./pages/ResidentDashboard";
 import MyReports from "./pages/MyReports";
 import Feedback from "./pages/Feedback";
@@ -29,6 +30,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/verify-email" element={<EmailVerification />} />
                 <Route path="/register" element={<Register />} />
                 <Route element={<ProtectedRoute allowedRoles={["RESIDENT"]} />}>
                   <Route path="/resident-dashboard" element={<ResidentDashboard />} />
