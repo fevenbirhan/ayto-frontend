@@ -1,12 +1,10 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, Clock, UserCog, ChevronDown, Download, Bell } from "lucide-react";
+import { Search, Filter, Clock, ChevronDown, Download, Bell, Building2, BarChart3, ArrowLeft, Home, User, Settings, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -14,34 +12,30 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Table, 
-  TableHeader, 
-  TableRow, 
-  TableHead, 
-  TableBody, 
-  TableCell 
-} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
-// Import components we'll create
-import { ReportQueue } from "@/components/government/ReportQueue";
-import { AssignmentPanel } from "@/components/government/AssignmentPanel";
-import { UtilityProvidersDashboard } from "@/components/government/UtilityProvidersDashboard";
-import { MaintenanceTeamsDashboard } from "@/components/government/MaintenanceTeamsDashboard";
-import { NotificationsCenter } from "@/components/government/NotificationsCenter";
-import { AdminSettings } from "@/components/government/AdminSettings";
+// Import our components
+import { CreateUtilityProvider } from "@/components/government/CreateUtilityProvider";
+import ManageUtilityProviders from "@/components/government/ManageUtilityProviders";
+import { AnalyticsDashboard } from "@/components/government/AnalyticsDashboard";
 
 const GovernmentDashboard = () => {
-  const [activeTab, setActiveTab] = useState("queue");
+  const [activeTab, setActiveTab] = useState("analytics");
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterOpen, setFilterOpen] = useState(false);
   const [selectedPriority, setSelectedPriority] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
-  const [dateRange, setDateRange] = useState<{ from: Date | null; to: Date | null }>({
-    from: null,
-    to: null,
-  });
+  const [unreadNotifications, setUnreadNotifications] = useState(3);
 
   const priorityOptions = ["Urgent", "High", "Medium", "Low"];
   const statusOptions = ["Pending", "Assigned", "In Progress", "Resolved", "Rejected"];
@@ -52,281 +46,224 @@ const GovernmentDashboard = () => {
     "Power Corporation"
   ];
 
+  // Simulate initial loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleTabChange = (value: string) => {
+    setIsLoading(true);
+    setActiveTab(value);
+    // Simulate loading state when switching tabs
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+  };
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-[250px]" />
+          <Skeleton className="h-[400px] w-full" />
+        </div>
+      );
+    }
+
+    switch (activeTab) {
+      case "analytics":
+        return <AnalyticsDashboard />;
+      case "create-provider":
+        return <CreateUtilityProvider />;
+      case "manage-providers":
+        return <ManageUtilityProviders />;
+      default:
+        return <AnalyticsDashboard />;
+    }
+  };
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-background">
       <Header />
-      <main className="flex-1 bg-[#27391C] py-8 px-4 md:px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <h1 className="text-white text-3xl md:text-4xl font-bold">Government Dashboard</h1>
-            
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-white/60" />
-                <Input
-                  type="search"
-                  placeholder="Search reports..."
-                  className="pl-8 bg-[#18230F] text-white border-[#255F38] w-full md:w-64"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-1 bg-[#18230F] text-white border-[#255F38] hover:bg-[#1e2a13]">
-                    <Filter className="h-4 w-4" />
-                    Filters
-                    <ChevronDown className="h-4 w-4" />
+      <main className="flex-1 bg-[#1A1A1A]">
+        {/* Sticky Header Section */}
+        <div className="sticky top-0 z-10 bg-[#1A1A1A] border-b border-[#404040]">
+          <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              {/* Left Section: Title and Back Button */}
+              <div className="flex items-center gap-4">
+                {activeTab !== "analytics" && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleTabChange("analytics")}
+                    className="text-white hover:bg-[#2D2D2D]"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Dashboard
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-[#18230F] text-white border-[#255F38]">
-                  <div className="p-2">
-                    <p className="font-medium mb-2">Priority</p>
-                    <div className="flex flex-wrap gap-1">
-                      {priorityOptions.map(priority => (
-                        <Button 
-                          key={priority}
-                          variant={selectedPriority === priority ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedPriority(
-                            selectedPriority === priority ? null : priority
-                          )}
-                          className={`text-xs ${selectedPriority === priority ? 'bg-[#255F38] text-white' : 'bg-transparent text-white border-[#255F38]'}`}
-                        >
-                          {priority}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator className="bg-[#255F38]/30" />
-                  
-                  <div className="p-2">
-                    <p className="font-medium mb-2">Status</p>
-                    <div className="flex flex-wrap gap-1">
-                      {statusOptions.map(status => (
-                        <Button 
-                          key={status}
-                          variant={selectedStatus === status ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedStatus(
-                            selectedStatus === status ? null : status
-                          )}
-                          className="text-xs"
-                        >
-                          {status}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator className="bg-[#255F38]/30" />
-                  
-                  <div className="p-2">
-                    <p className="font-medium mb-2">Department</p>
-                    <div className="flex flex-wrap gap-1">
-                      {departmentOptions.map(dept => (
-                        <Button 
-                          key={dept}
-                          variant={selectedDepartment === dept ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedDepartment(
-                            selectedDepartment === dept ? null : dept
-                          )}
-                          className="text-xs"
-                        >
-                          {dept.split(' ')[0]}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator className="bg-[#255F38]/30" />
-                  
-                  <div className="p-2 flex justify-between">
+                )}
+                <div className="space-y-1">
+                  <h1 className="text-white text-3xl md:text-4xl font-bold">
+                    {activeTab === "analytics" && "Government Dashboard"}
+                    {activeTab === "create-provider" && "Create Utility Provider"}
+                    {activeTab === "manage-providers" && "Manage Utility Providers"}
+                  </h1>
+                </div>
+              </div>
+
+              {/* Right Section: Action Buttons */}
+              <div className="flex items-center gap-4">
+                {/* Home Button */}
+                <Button 
+                  variant="ghost" 
+                  className="p-2 text-white hover:bg-[#2D2D2D] rounded-full transition-colors"
+                  onClick={() => window.location.href = '/'}
+                >
+                  <Home className="h-5 w-5" />
+                  <span className="sr-only">Home</span>
+                </Button>
+
+                {/* Notification Button */}
+                <Sheet>
+                  <SheetTrigger asChild>
                     <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="bg-transparent text-white border-[#255F38]"
-                      onClick={() => {
-                        setSelectedPriority(null);
-                        setSelectedStatus(null);
-                        setSelectedDepartment(null);
-                        setDateRange({ from: null, to: null });
-                      }}
+                      variant="ghost" 
+                      className="relative p-2 text-white hover:bg-[#2D2D2D] rounded-full transition-colors"
                     >
-                      Clear All
+                      <Bell className="h-5 w-5" />
+                      <span className="sr-only">Notifications</span>
+                      {unreadNotifications > 0 && (
+                        <Badge 
+                          variant="destructive" 
+                          className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0"
+                        >
+                          {unreadNotifications}
+                        </Badge>
+                      )}
                     </Button>
+                  </SheetTrigger>
+                  <SheetContent className="bg-[#2D2D2D] text-white border-[#404040]">
+                    <SheetHeader>
+                      <SheetTitle className="text-white">Notifications</SheetTitle>
+                    </SheetHeader>
+                    <div className="mt-6 space-y-4">
+                      {/* Example notifications */}
+                      <div className="p-4 bg-[#404040] rounded-lg">
+                        <p className="text-sm font-medium">New Provider Registration</p>
+                        <p className="text-xs text-[#A3A3A3] mt-1">Ethio Telecom has registered as a new provider</p>
+                        <p className="text-xs text-[#A3A3A3] mt-2">2 hours ago</p>
+                      </div>
+                      <div className="p-4 bg-[#404040] rounded-lg">
+                        <p className="text-sm font-medium">Status Update</p>
+                        <p className="text-xs text-[#A3A3A3] mt-1">Addis Ababa Water Supply has been suspended</p>
+                        <p className="text-xs text-[#A3A3A3] mt-2">5 hours ago</p>
+                      </div>
+                      <div className="p-4 bg-[#404040] rounded-lg">
+                        <p className="text-sm font-medium">System Alert</p>
+                        <p className="text-xs text-[#A3A3A3] mt-1">High number of pending reports in Electricity sector</p>
+                        <p className="text-xs text-[#A3A3A3] mt-2">1 day ago</p>
+                      </div>
+                    </div>
+                  </SheetContent>
+                </Sheet>
+
+                {/* Profile Button */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <Button 
-                      size="sm"
-                      className="bg-[#6C7719] text-white hover:bg-[#5a6415]"
+                      variant="ghost" 
+                      className="p-2 text-white hover:bg-[#2D2D2D] rounded-full transition-colors"
                     >
-                      Apply Filters
+                      <User className="h-5 w-5" />
+                      <span className="sr-only">Profile</span>
                     </Button>
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              
-              <Button 
-                variant="outline" 
-                className="gap-1 bg-[#18230F] text-white border-[#255F38] hover:bg-[#1e2a13]"
-              >
-                <Clock className="h-4 w-4" />
-                Recent
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="gap-1 bg-[#18230F] text-white border-[#255F38] hover:bg-[#1e2a13]"
-              >
-                <Download className="h-4 w-4" />
-                Export
-              </Button>
-              
-              <Button className="bg-[#6C7719] text-white hover:bg-[#5a6415]">
-                <Bell className="h-4 w-4" />
-                <span className="sr-only">Notifications</span>
-                <span className="ml-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
-              </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 bg-[#2D2D2D] text-white border-[#404040]">
+                    <DropdownMenuItem className="cursor-pointer hover:bg-[#404040]">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="cursor-pointer hover:bg-[#404040]">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-[#404040]" />
+                    <DropdownMenuItem className="cursor-pointer hover:bg-[#404040] text-red-400">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Logout</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
+        </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mb-6 bg-[#18230F] border border-[#255F38] p-1">
-              <TabsTrigger 
-                value="queue" 
-                className="data-[state=active]:bg-[#255F38] data-[state=active]:text-white text-white/70"
-              >
-                Incoming Queue
-              </TabsTrigger>
-              <TabsTrigger 
-                value="assigned" 
-                className="data-[state=active]:bg-[#255F38] data-[state=active]:text-white text-white/70"
-              >
-                Assigned Reports
-              </TabsTrigger>
-              <TabsTrigger 
-                value="utility" 
-                className="data-[state=active]:bg-[#255F38] data-[state=active]:text-white text-white/70"
-              >
-                Utility Providers
-              </TabsTrigger>
-              <TabsTrigger 
-                value="maintenance" 
-                className="data-[state=active]:bg-[#255F38] data-[state=active]:text-white text-white/70"
-              >
-                Maintenance Teams
-              </TabsTrigger>
-              <TabsTrigger 
-                value="admin" 
-                className="data-[state=active]:bg-[#255F38] data-[state=active]:text-white text-white/70"
-              >
-                Admin
-              </TabsTrigger>
-            </TabsList>
+        {/* Main Content */}
+        <div className="py-8 px-4 md:px-6">
+          <div className="max-w-7xl mx-auto">
+            {/* Navigation Tabs */}
+            <div className="space-y-6">
+              <div className="flex gap-2 bg-[#2D2D2D] border border-[#404040] p-1 rounded-md">
+                <Button
+                  variant="ghost"
+                  onClick={() => handleTabChange("analytics")}
+                  className={cn(
+                    "flex-1",
+                    activeTab === "analytics" 
+                      ? "bg-[#3B82F6] text-white" 
+                      : "text-white/70 hover:bg-[#404040] hover:text-white"
+                  )}
+                >
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Analytics
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleTabChange("create-provider")}
+                  className={cn(
+                    "flex-1",
+                    activeTab === "create-provider" 
+                      ? "bg-[#3B82F6] text-white" 
+                      : "text-white/70 hover:bg-[#404040] hover:text-white"
+                  )}
+                >
+                  <Building2 className="w-4 h-4 mr-2" />
+                  Create Provider
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => handleTabChange("manage-providers")}
+                  className={cn(
+                    "flex-1",
+                    activeTab === "manage-providers" 
+                      ? "bg-[#3B82F6] text-white" 
+                      : "text-white/70 hover:bg-[#404040] hover:text-white"
+                  )}
+                >
+                  <Building2 className="w-4 h-4 mr-2" />
+                  Manage Providers
+                </Button>
+              </div>
 
-            <TabsContent value="queue" className="mt-0">
-              <ReportQueue searchQuery={searchQuery} filters={{
-                priority: selectedPriority,
-                status: selectedStatus,
-                department: selectedDepartment,
-                dateRange
-              }} />
-            </TabsContent>
+              {/* Description Text */}
+              <div className="px-2">
+                <p className="text-[#A3A3A3] text-sm">
+                  {activeTab === "analytics" && "Overview and analytics for government services"}
+                  {activeTab === "create-provider" && "Add new utility providers to the system"}
+                  {activeTab === "manage-providers" && "Manage existing utility providers"}
+                </p>
+              </div>
 
-            <TabsContent value="assigned" className="mt-0">
-              <Card>
-                <CardContent className="p-6">
-                  <h2 className="text-xl font-semibold mb-4">Assigned Reports</h2>
-                  
-                  <div className="border rounded-md">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>ID</TableHead>
-                          <TableHead>Title</TableHead>
-                          <TableHead>Category</TableHead>
-                          <TableHead>Assigned To</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Priority</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell className="font-medium">#1234</TableCell>
-                          <TableCell>Broken water pipe</TableCell>
-                          <TableCell>Water & Sewerage</TableCell>
-                          <TableCell>Maintenance Team A</TableCell>
-                          <TableCell>
-                            <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs font-medium">In Progress</span>
-                          </TableCell>
-                          <TableCell>
-                            <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium">High</span>
-                          </TableCell>
-                          <TableCell>2023-10-15</TableCell>
-                          <TableCell>
-                            <Button variant="outline" size="sm">View</Button>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell className="font-medium">#1235</TableCell>
-                          <TableCell>Street light outage</TableCell>
-                          <TableCell>Power Corporation</TableCell>
-                          <TableCell>Team B</TableCell>
-                          <TableCell>
-                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">Resolved</span>
-                          </TableCell>
-                          <TableCell>
-                            <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">Medium</span>
-                          </TableCell>
-                          <TableCell>2023-10-14</TableCell>
-                          <TableCell>
-                            <Button variant="outline" size="sm">View</Button>
-                          </TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell className="font-medium">#1236</TableCell>
-                          <TableCell>Pothole on main street</TableCell>
-                          <TableCell>Road Ministry</TableCell>
-                          <TableCell>Road Crew 2</TableCell>
-                          <TableCell>
-                            <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs font-medium">Assigned</span>
-                          </TableCell>
-                          <TableCell>
-                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">Low</span>
-                          </TableCell>
-                          <TableCell>2023-10-13</TableCell>
-                          <TableCell>
-                            <Button variant="outline" size="sm">View</Button>
-                          </TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </div>
-                  
-                  <div className="flex justify-between items-center mt-4">
-                    <p className="text-sm text-muted-foreground">Showing 3 of 24 reports</p>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" disabled>Previous</Button>
-                      <Button variant="outline" size="sm">Next</Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="utility" className="mt-0">
-              <UtilityProvidersDashboard />
-            </TabsContent>
-
-            <TabsContent value="maintenance" className="mt-0">
-              <MaintenanceTeamsDashboard />
-            </TabsContent>
-
-            <TabsContent value="admin" className="mt-0">
-              <AdminSettings />
-            </TabsContent>
-          </Tabs>
+              {/* Content Area */}
+              <div className="mt-6">
+                {renderContent()}
+              </div>
+            </div>
+          </div>
         </div>
       </main>
       <Footer />

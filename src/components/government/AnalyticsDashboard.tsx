@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,6 +45,31 @@ const responseTimeData = [
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
+// Mock data - replace with actual API data
+const reportCategories = [
+  { name: "Water", value: 35 },
+  { name: "Electricity", value: 25 },
+  { name: "Waste", value: 20 },
+  { name: "Roads", value: 15 },
+  { name: "Other", value: 5 },
+];
+
+const monthlyTrends = [
+  { month: "Jan", reports: 65, resolved: 45 },
+  { month: "Feb", reports: 75, resolved: 60 },
+  { month: "Mar", reports: 85, resolved: 70 },
+  { month: "Apr", reports: 95, resolved: 80 },
+  { month: "May", reports: 105, resolved: 90 },
+  { month: "Jun", reports: 115, resolved: 100 },
+];
+
+const teamPerformance = [
+  { team: "Water", tasks: 120, avgTime: 2.5 },
+  { team: "Electricity", tasks: 95, avgTime: 3.2 },
+  { team: "Waste", tasks: 85, avgTime: 2.8 },
+  { team: "Roads", tasks: 75, avgTime: 4.1 },
+];
+
 export const AnalyticsDashboard = () => {
   const [timeFrame, setTimeFrame] = React.useState('month');
   
@@ -55,6 +79,9 @@ export const AnalyticsDashboard = () => {
   const pendingReports = 45; // From statusData
   const avgResponseTime = responseTimeData.reduce((acc, item) => acc + item.avgDays, 0) / responseTimeData.length;
   
+  const totalResolved = monthlyTrends.reduce((sum, month) => sum + month.resolved, 0);
+  const avgResolutionTime = teamPerformance.reduce((sum, team) => sum + team.avgTime, 0) / teamPerformance.length;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
@@ -75,199 +102,130 @@ export const AnalyticsDashboard = () => {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total Reports</CardDescription>
-            <CardTitle className="text-2xl">{totalReports}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-xs text-muted-foreground flex items-center">
-              <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-              <span className="text-green-500 font-medium">12% increase</span> from last month
-            </div>
+            <div className="text-2xl font-bold">{totalReports}</div>
+            <p className="text-xs text-muted-foreground">
+              +{((totalReports - 500) / 500 * 100).toFixed(1)}% from last month
+            </p>
           </CardContent>
         </Card>
-        
         <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Resolved Reports</CardDescription>
-            <CardTitle className="text-2xl">{resolvedReports}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Resolved Reports</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-xs text-muted-foreground">
-              <div className="w-full bg-muted rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: `${(resolvedReports / totalReports) * 100}%` }}></div>
-              </div>
-              <div className="mt-1">{Math.round((resolvedReports / totalReports) * 100)}% resolution rate</div>
-            </div>
+            <div className="text-2xl font-bold">{totalResolved}</div>
+            <p className="text-xs text-muted-foreground">
+              {((totalResolved / totalReports) * 100).toFixed(1)}% resolution rate
+            </p>
           </CardContent>
         </Card>
-        
         <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Pending Reports</CardDescription>
-            <CardTitle className="text-2xl">{pendingReports}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg. Resolution Time</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-xs text-muted-foreground flex items-center">
-              <Activity className="h-3 w-3 mr-1 text-amber-500" />
-              <span className="text-amber-500 font-medium">8 reports</span> require immediate attention
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Avg. Response Time</CardDescription>
-            <CardTitle className="text-2xl">{avgResponseTime.toFixed(1)} days</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xs text-muted-foreground flex items-center">
-              <Calendar className="h-3 w-3 mr-1 text-blue-500" />
-              <span className="text-blue-500 font-medium">0.5 days faster</span> than last month
-            </div>
+            <div className="text-2xl font-bold">{avgResolutionTime.toFixed(1)} days</div>
+            <p className="text-xs text-muted-foreground">
+              -0.5 days from last month
+            </p>
           </CardContent>
         </Card>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center">
-                <BarChart3 className="h-5 w-5 mr-2" />
-                Monthly Reports
-              </CardTitle>
-              <Button variant="ghost" size="sm">
-                <Download className="h-4 w-4" />
-              </Button>
-            </div>
+            <CardTitle>Monthly Trends</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <RechartsBarChart data={monthlyReportsData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(23, 23, 23, 0.8)', 
-                    border: 'none',
-                    borderRadius: '4px',
-                    color: 'white'
-                  }} 
-                />
-                <Bar dataKey="reports" fill="#8884d8" />
-              </RechartsBarChart>
-            </ResponsiveContainer>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={monthlyTrends}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="reports"
+                    stroke="#8884d8"
+                    name="Total Reports"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="resolved"
+                    stroke="#82ca9d"
+                    name="Resolved Reports"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center">
-                <PieChart className="h-5 w-5 mr-2" />
-                Reports by Category
-              </CardTitle>
-              <Button variant="ghost" size="sm">
-                <Download className="h-4 w-4" />
-              </Button>
-            </div>
+            <CardTitle>Report Categories</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <RechartsPieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(23, 23, 23, 0.8)', 
-                    border: 'none',
-                    borderRadius: '4px',
-                    color: 'white'
-                  }} 
-                />
-                <Legend />
-              </RechartsPieChart>
-            </ResponsiveContainer>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPieChart>
+                  <Pie
+                    data={reportCategories}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {reportCategories.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="md:col-span-2">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center">
-                <BarChart3 className="h-5 w-5 mr-2" />
-                Reports by Status
-              </CardTitle>
-              <Button variant="ghost" size="sm">
-                <Download className="h-4 w-4" />
-              </Button>
-            </div>
+            <CardTitle>Team Performance</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <RechartsBarChart data={statusData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(23, 23, 23, 0.8)', 
-                    border: 'none',
-                    borderRadius: '4px',
-                    color: 'white'
-                  }} 
-                />
-                <Bar dataKey="reports" fill="#82ca9d" />
-              </RechartsBarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center">
-                <Activity className="h-5 w-5 mr-2" />
-                Avg. Response Time by Department
-              </CardTitle>
-              <Button variant="ghost" size="sm">
-                <Download className="h-4 w-4" />
-              </Button>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsBarChart data={teamPerformance}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="team" />
+                  <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
+                  <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
+                  <Tooltip />
+                  <Bar
+                    yAxisId="left"
+                    dataKey="tasks"
+                    fill="#8884d8"
+                    name="Tasks Completed"
+                  />
+                  <Bar
+                    yAxisId="right"
+                    dataKey="avgTime"
+                    fill="#82ca9d"
+                    name="Avg. Resolution Time (days)"
+                  />
+                </RechartsBarChart>
+              </ResponsiveContainer>
             </div>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <RechartsBarChart data={responseTimeData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(23, 23, 23, 0.8)', 
-                    border: 'none',
-                    borderRadius: '4px',
-                    color: 'white'
-                  }} 
-                />
-                <Bar dataKey="avgDays" fill="#FF8042" />
-              </RechartsBarChart>
-            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
