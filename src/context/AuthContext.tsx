@@ -13,7 +13,7 @@ interface AuthContextType {
     isLoading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
@@ -27,14 +27,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const verifyToken = async () => {
             try {
-                if (token) {
-                    // In a real app, you would verify the token with your backend here
-                    // For now, we'll just assume it's valid if it exists
+                if (!token) {
                     setIsLoading(false);
-                } else {
-                    setIsLoading(false);
+                    return;
                 }
+
+                // Check if token is expired
+                const tokenParts = token.split('.');
+                if (tokenParts.length === 3) {
+                    const payload = JSON.parse(atob(tokenParts[1]));
+                    if (payload.exp && payload.exp * 1000 < Date.now()) {
+                        // Token is expired
+                        logout();
+                        return;
+                    }
+                }
+                setIsLoading(false);
             } catch (error) {
+                console.error('Token verification failed:', error);
                 logout();
                 setIsLoading(false);
             }
@@ -47,31 +57,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const login = async (email: string, password: string) => {
         setIsLoading(true);
         try {
-          const response = await authService.login({ email, password });
-          localStorage.setItem("token", response.token);
-          localStorage.setItem("role", response.role);
-          localStorage.setItem("userName", response.name);
-          localStorage.setItem("userId", response.userId);
-          setToken(response.token);
-          setUserRole(response.role);
-          setUserName(response.name);
-          setUserId(response.userId);
-          setIsLoading(false);
-          // No navigate here!
+            const response = await authService.login({ email, password });
+            
+            setToken(response.token);
+            setUserRole(response.role);
+            setUserName(response.name);
+            setUserId(response.userId);
+
+            // Persist to localStorage
+            localStorage.setItem("token", response.token);
+            localStorage.setItem("role", response.role);
+            localStorage.setItem("userName", response.name);
+            localStorage.setItem("userId", response.userId);
         } catch (error) {
-          setIsLoading(false);
-          throw error;
+            console.error('Login error:', error);
+            throw error;
+        } finally {
+            setIsLoading(false);
         }
     };
 
     // Logout function
     const logout = () => {
+        authService.logout(); // This will clear localStorage
         localStorage.removeItem("token");
         localStorage.removeItem("role");
         localStorage.removeItem("userName");
+        localStorage.removeItem("userId");
         setToken(null);
         setUserRole(null);
         setUserName(null);
+        setUserId(null);
         navigate("/login");
     };
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,8 @@ import {
 import { MapPin, Upload, X } from "lucide-react";
 import { LocationPicker } from "@/components/maps/LocationPicker";
 import { useToast } from "@/components/ui/use-toast";
+import { AuthContext } from "@/context/AuthContext";
+import { reportService } from "@/services/report";
 
 interface ReportFormProps {
   onSubmitSuccess: () => void;
@@ -20,12 +22,24 @@ interface ReportFormProps {
 
 export const ReportForm = ({ onSubmitSuccess }: ReportFormProps) => {
   const { toast } = useToast();
+  const { token, userId } = useContext(AuthContext);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [location, setLocation] = useState<{ lat: number; lng: number; address?: string } | null>(null);
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!token) {
+      toast({
+        title: "Error",
+        description: "Please log in to submit reports",
+        variant: "destructive"
+      });
+    }
+  }, [token, toast]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -56,9 +70,18 @@ export const ReportForm = ({ onSubmitSuccess }: ReportFormProps) => {
     setImagePreviewUrls(newImageUrls);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    if (!token) {
+      toast({
+        title: "Error",
+        description: "Please log in to submit reports",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!location) {
       toast({
         title: "Error",
@@ -67,32 +90,64 @@ export const ReportForm = ({ onSubmitSuccess }: ReportFormProps) => {
       });
       return;
     }
-    
-    console.log({ 
-      title, 
-      description, 
-      category, 
-      location: {
-        lat: location.lat,
-        lng: location.lng,
-        address: location.address
-      }, 
-      images 
-    });
-    
-    setTitle("");
-    setDescription("");
-    setCategory("");
-    setLocation(null);
-    setImages([]);
-    setImagePreviewUrls([]);
-    
-    onSubmitSuccess();
-    
-    toast({
-      title: "Success",
-      description: "Report submitted successfully",
-    });
+
+    if (!title || !description || !category) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("title", title.trim());
+      formData.append("description", description.trim());
+      formData.append("category", category);
+      formData.append("location", `${location.lat},${location.lng}`);
+
+      images.forEach((image) => {
+        formData.append("images", image);
+      });
+
+      console.log("Submitting report with token:", token); // Debug log
+      await reportService.createReport(formData, token);
+      
+      toast({
+        title: "Success",
+        description: "Report submitted successfully",
+      });
+
+      // Reset form
+      setTitle("");
+      setDescription("");
+      setCategory("");
+      setLocation(null);
+      setImages([]);
+      setImagePreviewUrls([]);
+      onSubmitSuccess();
+    } catch (error: any) {
+      console.error("Error submitting report:", error);
+      let errorMessage = "Failed to submit report.";
+      
+      if (error.response?.status === 403) {
+        errorMessage = "You don't have permission to submit reports. Please check your login status.";
+        // Optionally refresh the token or redirect to login
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const categories = [
@@ -218,14 +273,16 @@ export const ReportForm = ({ onSubmitSuccess }: ReportFormProps) => {
               variant="outline" 
               onClick={onSubmitSuccess}
               className="border-[#404040] text-white hover:bg-[#404040]"
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button 
               type="submit" 
               className="bg-[#6C7719] hover:bg-[#5a6415] text-white"
+              disabled={isSubmitting || !token}
             >
-              Submit Report
+              {isSubmitting ? "Submitting..." : "Submit Report"}
             </Button>
           </div>
         </form>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { PageContent } from "@/components/layout/PageContent";
@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input";
 import { ReportForm } from "@/components/dashboard/ReportForm";
 import { NotificationsPanel } from "@/components/dashboard/NotificationsPanel";
 import { ReportsList } from "@/components/dashboard/ReportsList";
+import { AuthContext } from "@/context/AuthContext";
 
 const MyReports = () => {
+  const { token, userId } = useContext(AuthContext);
   const [searchQuery, setSearchQuery] = useState("");
   const [showReportForm, setShowReportForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -70,7 +72,7 @@ const MyReports = () => {
             </Card>
           )}
 
-          <ReportsList searchQuery={searchQuery} isPersonal={true} />
+          <ReportsList searchQuery={searchQuery} token={token} userId={userId} />
         </div>
       </PageContent>
       <Footer />

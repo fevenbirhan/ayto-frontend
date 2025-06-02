@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,101 +15,148 @@ import {
   X,
   MessageSquare,
   ThumbsUp,
-  Image,
+  Image as ImageIcon,
+  MapPin,
 } from "lucide-react";
+import { Report } from "@/services/report";
+import { reportService } from "@/services/report";
+import { AuthContext } from "@/context/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 interface CommunityReportsCardsProps {
   searchQuery: string;
   isPersonal: boolean;
 }
 
-const mockReports = [
-  {
-    id: 4,
-    title: "Water Main Break",
-    category: "Water Shortage",
-    location: "Elm Street",
-    date: "2023-05-10",
-    status: "in_progress",
-    description: "Water flooding the street and causing damage to nearby properties",
-    votes: 45,
-    hasComments: true,
-    hasImages: false,
-    isPersonal: false,
-  },
-  {
-    id: 5,
-    title: "Damaged Sidewalk",
-    category: "Infrastructure",
-    location: "32 Maple Road",
-    date: "2023-05-08",
-    status: "rejected",
-    description: "Sidewalk has multiple cracks and poses a tripping hazard for pedestrians",
-    votes: 8,
-    hasComments: true,
-    hasImages: true,
-    isPersonal: false,
-  },
-];
-
-export const CommunityReportsCards = ({ searchQuery, isPersonal }: CommunityReportsCardsProps) => {
+export const CommunityReportsCards = ({
+  searchQuery,
+  isPersonal,
+}: CommunityReportsCardsProps) => {
+  const { token } = useContext(AuthContext);
+  const { toast } = useToast();
+  const [reports, setReports] = useState<Report[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("newest");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredReports = mockReports
-    .filter(report => {
-      if (isPersonal && !report.isPersonal) return false;
-      if (!isPersonal && report.isPersonal) return false;
+  useEffect(() => {
+    const fetchReports = async () => {
+      if (!token) {
+        setError("Please log in to view reports");
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Decode token to check roles
+        const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+        console.log('Token payload:', tokenPayload); // Debug log
+
+        const data = await reportService.getAllReports(token);
+        setReports(data);
+      } catch (error: any) {
+        console.error("Error fetching reports:", error);
+        const errorMessage = error.message || "Failed to load reports. Please try again later.";
+        setError(errorMessage);
+        
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+
+        // If token is expired, you might want to trigger a logout or token refresh
+        if (errorMessage.includes('expired')) {
+          // Handle token expiration (e.g., redirect to login)
+          console.log('Token has expired, should redirect to login');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReports();
+  }, [token, toast]);
+
+  const filteredReports = reports
+    .filter((report) => {
+      if (isPersonal && !report.residentName) return false;
       if (searchQuery && !report.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-      if (statusFilter !== "all" && report.status !== statusFilter) return false;
-      if (categoryFilter !== "all" && report.category !== categoryFilter) return false;
+      if (statusFilter !== "all" && report.status.toUpperCase() !== statusFilter.toUpperCase()) return false;
+      if (categoryFilter !== "all" && report.category.toLowerCase() !== categoryFilter.toLowerCase()) return false;
       return true;
     })
     .sort((a, b) => {
       if (sortBy === "newest") {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       } else if (sortBy === "oldest") {
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
-      } else if (sortBy === "most_voted") {
-        return b.votes - a.votes;
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       }
       return 0;
     });
 
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case "pending": return "bg-yellow-600/20 text-yellow-400";
-      case "in_progress": return "bg-blue-600/20 text-blue-400";
-      case "resolved": return "bg-green-600/20 text-green-400";
-      case "rejected": return "bg-red-600/20 text-red-400";
-      default: return "bg-gray-600/20 text-gray-400";
+      case "PENDING":
+        return "bg-yellow-600/20 text-yellow-400";
+      case "IN_PROGRESS":
+        return "bg-blue-600/20 text-blue-400";
+      case "RESOLVED":
+        return "bg-green-600/20 text-green-400";
+      case "REJECTED":
+        return "bg-red-600/20 text-red-400";
+      default:
+        return "bg-gray-600/20 text-gray-400";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "pending": return <Clock className="h-4 w-4" />;
-      case "in_progress": return <Clock className="h-4 w-4" />;
-      case "resolved": return <Check className="h-4 w-4" />;
-      case "rejected": return <X className="h-4 w-4" />;
-      default: return null;
+      case "PENDING":
+      case "IN_PROGRESS":
+        return <Clock className="h-4 w-4" />;
+      case "RESOLVED":
+        return <Check className="h-4 w-4" />;
+      case "REJECTED":
+        return <X className="h-4 w-4" />;
+      default:
+        return null;
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "pending": return "Pending";
-      case "in_progress": return "In Progress";
-      case "resolved": return "Resolved";
-      case "rejected": return "Rejected";
-      default: return status;
+      case "PENDING":
+        return "Pending";
+      case "IN_PROGRESS":
+        return "In Progress";
+      case "RESOLVED":
+        return "Resolved";
+      case "REJECTED":
+        return "Rejected";
+      default:
+        return status;
     }
   };
 
   const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+    const options: Intl.DateTimeFormatOptions = {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    };
     return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  const formatLocation = (location: string) => {
+    const [lat, lng] = location.split(",").map(Number);
+    return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
   };
 
   return (
@@ -130,10 +177,10 @@ export const CommunityReportsCards = ({ searchQuery, isPersonal }: CommunityRepo
                   </SelectTrigger>
                   <SelectContent className="bg-[#1E2A13] text-white border-[#255F38]">
                     <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                    <SelectItem value="RESOLVED">Resolved</SelectItem>
+                    <SelectItem value="REJECTED">Rejected</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -161,7 +208,6 @@ export const CommunityReportsCards = ({ searchQuery, isPersonal }: CommunityRepo
                 <SelectContent className="bg-[#1E2A13] text-white border-[#255F38]">
                   <SelectItem value="newest">Newest First</SelectItem>
                   <SelectItem value="oldest">Oldest First</SelectItem>
-                  <SelectItem value="most_voted">Most Voted</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -169,33 +215,72 @@ export const CommunityReportsCards = ({ searchQuery, isPersonal }: CommunityRepo
         </Card>
       )}
 
-      {!isPersonal ? (
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+          <p className="text-white mt-4">Loading reports...</p>
+        </div>
+      ) : error ? (
+        <div className="text-red-400 text-center py-8">{error}</div>
+      ) : filteredReports.length === 0 ? (
+        <div className="text-white text-center py-8">No reports found.</div>
+      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredReports.map((report) => (
-            <Card key={report.id} className="bg-[#1E2A13] border-[#255F38] text-white">
-              <CardContent className="p-4 space-y-2">
-                <div className="flex justify-between items-center">
-                  <div className="text-lg font-semibold">{report.title}</div>
-                  <div className={`flex items-center text-xs px-2 py-1 rounded-full ${getStatusBadgeClass(report.status)}`}>
+            <Card
+              key={report.id}
+              className="bg-[#1E2A13] border-[#255F38] text-white overflow-hidden"
+            >
+              <CardContent className="p-4 space-y-3">
+                <div className="flex justify-between items-start gap-2">
+                  <h3 className="text-lg font-semibold line-clamp-2">{report.title}</h3>
+                  <div
+                    className={`flex items-center text-xs px-2 py-1 rounded-full whitespace-nowrap ${getStatusBadgeClass(
+                      report.status
+                    )}`}
+                  >
                     {getStatusIcon(report.status)}
                     <span className="ml-1">{getStatusText(report.status)}</span>
                   </div>
                 </div>
-                <div className="text-sm text-white/70">{report.category}</div>
-                <div className="text-sm">{report.description}</div>
-                <div className="text-sm text-white/70">📍 {report.location}</div>
-                <div className="text-sm text-white/50">📅 {formatDate(report.date)}</div>
-                <div className="flex gap-4 pt-2">
-                  <div className="flex items-center gap-1"><ThumbsUp className="h-4 w-4" /> {report.votes}</div>
-                  {report.hasComments && <MessageSquare className="h-4 w-4" />}
-                  {report.hasImages && <Image className="h-4 w-4" />}
+
+                <div className="flex items-center gap-2 text-sm text-white/70">
+                  <span className="px-2 py-1 bg-[#2A3B1C] rounded-md">{report.category}</span>
+                </div>
+
+                <p className="text-sm line-clamp-3">{report.description}</p>
+
+                {report.imageUrls && report.imageUrls.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto py-2">
+                    {report.imageUrls.map((url, index) => (
+                      <img
+                        key={index}
+                        src={url}
+                        alt={`Report image ${index + 1}`}
+                        className="h-20 w-20 object-cover rounded-md flex-shrink-0"
+                      />
+                    ))}
+                  </div>
+                )}
+
+                <div className="text-sm text-white/70">
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    {formatLocation(report.location)}
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center text-sm text-white/50 pt-2 border-t border-white/10">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    {formatDate(report.createdAt)}
+                  </div>
+                  <div className="text-sm">{report.residentName}</div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
-      ) : (
-        <div className="text-white">[Insert Table View for Personal Reports Here]</div>
       )}
     </div>
   );

@@ -38,30 +38,48 @@ interface ResidentRegisterData {
 }
 
 export const authService = {
-    // Login (works for all user types)
     login: async (data: LoginData): Promise<AuthResponse> => {
-        const response = await axios.post<AuthResponse>(`${API_URL}/signin`, data);
-        return response.data;
+        try {
+            const response = await axios.post<AuthResponse>(`${API_URL}/login`, data);
+            
+            // Store the token and role in localStorage
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('role', response.data.role);
+                localStorage.setItem('userId', response.data.userId);
+                localStorage.setItem('accountStatus', response.data.accountStatus);
+            }
+
+            return response.data;
+        } catch (error: any) {
+            console.error('Login error:', error.response?.data);
+            throw error;
+        }
     },
 
-    // Government registration
     registerGovernment: async (data: GovernmentRegisterData) => {
         const fullData = {
             ...data,
             role: 'GOVERNMENT_OFFICE',
-            accountStatus: 'PENDING', // Default status
+            accountStatus: 'PENDING',
             description: data.description || 'Government office'
         };
         return axios.post(`http://localhost:8080/ayto/government-offices/signup`, fullData);
     },
 
-    // Resident registration
     registerResident: async (data: ResidentRegisterData) => {
         const fullData = {
             ...data,
             role: 'RESIDENT',
-            accountStatus: 'ACTIVE' // Residents are typically active immediately
+            accountStatus: 'ACTIVE'
         };
         return axios.post(`http://localhost:8080/ayto/residents/signup`, fullData);
+    },
+
+    logout: () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('accountStatus');
     }
 };
