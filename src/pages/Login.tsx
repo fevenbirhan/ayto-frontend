@@ -20,23 +20,25 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+
     try {
-      setIsLoading(true);
-      const response = await authService.login({ email, password });
+      // Call login from AuthContext which will handle everything
+      await login(email, password);
       
-      // Store auth data (sync with AuthContext)
-      localStorage.setItem("token", response.token);
-      localStorage.setItem("userId", response.userId);
-      localStorage.setItem("role", response.role);
-      localStorage.setItem("accountStatus", response.accountStatus);
-      
-      // Update AuthContext state
-      await login(email, password); // This will sync isAuthenticated/userRole
-      
-      toast({ title: "Success", description: "Login successful!" });
-    } catch (error) {
+      toast({ 
+        title: "Success", 
+        description: "Login successful!" 
+      });
+    } catch (error: any) {
+      console.error('Login error:', error);
       const errorMessage = error.response?.data?.message || "Invalid email or password";
-      toast({ title: "Error", description: errorMessage, variant: "destructive" });
+      
+      toast({ 
+        title: "Error", 
+        description: errorMessage, 
+        variant: "destructive" 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -46,12 +48,21 @@ const Login = () => {
   useEffect(() => {
     if (isAuthenticated && userRole) {
       const accountStatus = localStorage.getItem("accountStatus");
+      
       if (accountStatus !== 'ACTIVE') {
         navigate("/pending-approval");
-      } else if (userRole === 'GOVERNMENT_OFFICE') {
-        navigate("/government-dashboard");
-      } else if (userRole === 'RESIDENT') {
-        navigate("/resident-dashboard?tab=community");
+      } else {
+        switch(userRole.toUpperCase()) {
+          case 'GOVERNMENT_OFFICE':
+            navigate("/government-dashboard");
+            break;
+          case 'RESIDENT':
+            navigate("/resident-dashboard?tab=community");
+            break;
+          default:
+            console.warn('Unknown user role:', userRole);
+            navigate("/");
+        }
       }
     }
   }, [isAuthenticated, userRole, navigate]);
@@ -74,6 +85,7 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-[#1A1A1A] text-white border-[#404040]"
                 required
+                disabled={isLoading}
               />
             </div>
             
@@ -87,6 +99,7 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="bg-[#1A1A1A] text-white border-[#404040]"
                 required
+                disabled={isLoading}
               />
             </div>
             

@@ -5,65 +5,127 @@ export interface Report {
   title: string;
   description: string;
   category: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  location: string; // Stored as "latitude,longitude" in backend
+  imageUrls: string[];
   status: 'PENDING' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
-  latitude: number;
-  longitude: number;
+  residentName: string;
   createdAt: string;
   updatedAt: string;
-  userId: string;
+  votes?: number;  // optional
+  comments?: any[];
 }
 
-export interface CreateReportData {
+export interface CreateReportFormFields {
   title: string;
   description: string;
   category: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
   latitude: number;
   longitude: number;
+  images: File[];
+}
+
+export interface UpdateReportStatusData {
+  status: 'PENDING' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
 }
 
 class ReportService {
-  private baseUrl = '/api/reports';
+  private baseUrl = 'http://localhost:8080/ayto/reports';
 
-  async createReport(data: CreateReportData): Promise<Report> {
-    const response = await axios.post(this.baseUrl, data);
-    return response.data;
+  private getHeaders(token: string) {
+    const headers: Record<string, string> = {
+      'Authorization': `Bearer ${token}`,
+    };
+    return headers;
   }
 
-  async getReports(): Promise<Report[]> {
-    const response = await axios.get(this.baseUrl);
-    return response.data;
+  async getAllReports(token: string): Promise<Report[]> {
+    try {
+      const response = await axios.get(this.baseUrl, {
+        headers: this.getHeaders(token)
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to view reports.');
+      }
+      throw error;
+    }
   }
 
-  async getReportById(id: string): Promise<Report> {
-    const response = await axios.get(`${this.baseUrl}/${id}`);
-    return response.data;
+  async createReport(formData: FormData, token: string): Promise<Report> {
+    try {
+      const response = await axios.post(this.baseUrl, formData, {
+        headers: {
+          ...this.getHeaders(token),
+          // Don't set Content-Type for FormData, browser will set it automatically
+        }
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to create reports.');
+      }
+      throw error;
+    }
   }
 
-  async updateReport(id: string, data: Partial<CreateReportData>): Promise<Report> {
-    const response = await axios.patch(`${this.baseUrl}/${id}`, data);
-    return response.data;
+  async getReportById(reportId: string, token: string): Promise<Report> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/${reportId}`, {
+        headers: this.getHeaders(token)
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to view this report.');
+      }
+      throw error;
+    }
   }
 
-  async deleteReport(id: string): Promise<void> {
-    await axios.delete(`${this.baseUrl}/${id}`);
+  async getReportsByUser(userId: string, token: string): Promise<Report[]> {
+    try {
+      const response = await axios.get(`${this.baseUrl}/resident/${userId}`, {
+        headers: this.getHeaders(token)
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to view these reports.');
+      }
+      throw error;
+    }
   }
 
-  async getReportsByUser(userId: string): Promise<Report[]> {
-    const response = await axios.get(`${this.baseUrl}/user/${userId}`);
-    return response.data;
+  async updateReportStatus(reportId: string, status: UpdateReportStatusData, token: string): Promise<Report> {
+    try {
+      const response = await axios.put(`${this.baseUrl}/${reportId}/status`, status, {
+        headers: {
+          ...this.getHeaders(token),
+          'Content-Type': 'application/json'
+        }
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to update report status.');
+      }
+      throw error;
+    }
   }
 
-  async getReportsByStatus(status: Report['status']): Promise<Report[]> {
-    const response = await axios.get(`${this.baseUrl}/status/${status}`);
-    return response.data;
-  }
-
-  async updateReportStatus(id: string, status: Report['status']): Promise<Report> {
-    const response = await axios.patch(`${this.baseUrl}/${id}/status`, { status });
-    return response.data;
+  async deleteReport(reportId: string, token: string): Promise<void> {
+    try {
+      await axios.delete(`${this.baseUrl}/${reportId}`, {
+        headers: this.getHeaders(token)
+      });
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to delete reports.');
+      }
+      throw error;
+    }
   }
 }
 
-export const reportService = new ReportService(); 
+export const reportService = new ReportService();
