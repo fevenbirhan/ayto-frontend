@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { authService } from "@/services/auth";
 import { useToast } from "@/components/ui/use-toast";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -73,14 +74,13 @@ const Register = () => {
       setIsLoading(true);
       
       if (userType === 'government') {
-        await authService.registerGovernment({
-          name: formData.firstName, // For government, we just use firstName as name
+        const governmentData = {
+          name: formData.firstName,
           email: formData.email,
           password: formData.password,
-          phoneNumber: formData.phoneNumber,
-          location: "", // These are handled by backend
-          description: ""
-        });
+          phoneNumber: formData.phoneNumber
+        };
+        await authService.registerGovernment(governmentData);
       } else {
         await authService.registerResident({
           name: formData.firstName,
@@ -217,10 +217,9 @@ const Register = () => {
 
             <div className="space-y-2">
               <Label htmlFor="password" className="text-white">Password</Label>
-              <Input
+              <PasswordInput
                 id="password"
                 name="password"
-                type="password"
                 placeholder="Password"
                 value={formData.password}
                 onChange={handleChange}
@@ -231,10 +230,9 @@ const Register = () => {
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword" className="text-white">Confirm Password</Label>
-              <Input
+              <PasswordInput
                 id="confirmPassword"
                 name="confirmPassword"
-                type="password"
                 placeholder="Confirm password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
