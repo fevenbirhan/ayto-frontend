@@ -13,6 +13,7 @@ import Feedback from "./pages/Feedback";
 import HelpSupport from "./pages/HelpSupport";
 import GovernmentDashboard from "./pages/GovernmentDashboard";
 import NotFound from "./pages/NotFound";
+import ResetPassword from "./pages/ResetPassword";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -32,6 +33,7 @@ const App = () => (
                 <Route path="/login" element={<Login />} />
                 <Route path="/verify-email" element={<EmailVerification />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route element={<ProtectedRoute allowedRoles={["RESIDENT"]} />}>
                   <Route path="/resident-dashboard" element={<ResidentDashboard />} />
                   <Route path="/my-reports" element={<MyReports />} />

@@ -1,9 +1,9 @@
 import { useAuth } from "@/context/AuthContext";
 import { useForm } from "react-hook-form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { useState } from "react";
+import { PasswordInput } from "@/components/ui/password-input";
 
 interface ChangePasswordFormProps {
   onSuccess?: () => void;
@@ -57,14 +57,12 @@ export const ChangePasswordForm = ({ onSuccess, onCancel }: ChangePasswordFormPr
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <Input
-        type="password"
+      <PasswordInput
         placeholder="Old Password"
         {...register("oldPassword", { required: "Old password is required" })}
         disabled={isSubmitting}
       />
-      <Input
-        type="password"
+      <PasswordInput
         placeholder="New Password"
         {...register("newPassword", {
           required: "New password is required",

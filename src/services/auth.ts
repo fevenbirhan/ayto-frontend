@@ -55,6 +55,17 @@ interface VerifyOTPResponse {
     isVerified: boolean;
 }
 
+interface ResetPasswordResponse {
+    success: boolean;
+    message: string;
+}
+
+interface ResetPasswordRequest {
+    token: string;
+    newPassword: string;
+    confirmPassword: string;
+}
+
 export const authService = {
     login: async (data: LoginData): Promise<AuthResponse> => {
         try {
@@ -241,5 +252,37 @@ export const authService = {
         localStorage.removeItem('verifiedEmail');
         localStorage.removeItem('emailVerificationType');
         localStorage.removeItem('emailVerificationTimestamp');
+    },
+
+    // Password Reset Methods
+    requestPasswordReset: async (email: string): Promise<ResetPasswordResponse> => {
+        try {
+            const response = await axios.post(`${API_URL}/forgot-password`, { email });
+            return {
+                success: true,
+                message: response.data.message || "Reset token sent successfully"
+            };
+        } catch (error: any) {
+            console.error('Password reset request error:', error.response?.data);
+            throw error;
+        }
+    },
+
+    resetPassword: async (token: string, newPassword: string, confirmPassword: string): Promise<ResetPasswordResponse> => {
+        try {
+            const data: ResetPasswordRequest = {
+                token,
+                newPassword,
+                confirmPassword
+            };
+            const response = await axios.post(`${API_URL}/reset-password`, data);
+            return {
+                success: true,
+                message: response.data.message || "Password reset successfully"
+            };
+        } catch (error: any) {
+            console.error('Password reset error:', error.response?.data);
+            throw error;
+        }
     }
 };

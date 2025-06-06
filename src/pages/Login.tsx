@@ -9,6 +9,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { authService } from "@/services/auth";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
+import { ForgotPasswordDialog } from "@/components/layout/ForgotPasswordDialog";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -91,9 +93,8 @@ const Login = () => {
             
             <div className="space-y-2">
               <Label htmlFor="password" className="text-white">Password</Label>
-              <Input
+              <PasswordInput
                 id="password"
-                type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -111,8 +112,9 @@ const Login = () => {
               {isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
-          
-          <div className="mt-4 text-center">
+
+          <div className="mt-4 flex flex-col items-center gap-2">
+            <ForgotPasswordDialog />
             <p className="text-white">
               Don't have an account?{" "}
               <Link to="/verify-email" className="text-[#3B82F6] hover:underline font-medium">
