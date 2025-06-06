@@ -31,6 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Report, reportService } from "@/services/report";
+import { ReportForm } from "@/components/dashboard/ReportForm";
 
 interface ReportsListProps {
   searchQuery: string;
@@ -49,23 +50,25 @@ export const ReportsList = ({
   const [sortBy, setSortBy] = useState<string>("newest");
   const [expandedReport, setExpandedReport] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [reportToEdit, setReportToEdit] = useState<Report | null>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
+
+  const fetchReports = async () => {
+    try {
+      setLoading(true);
+      const fetchedReports = await reportService.getReportsByUser(
+        userId,
+        token
+      );
+      setReports(fetchedReports);
+    } catch (error) {
+      console.error("Error fetching reports:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        setLoading(true);
-        const fetchedReports = await reportService.getReportsByUser(
-          userId,
-          token
-        );
-        setReports(fetchedReports);
-      } catch (error) {
-        console.error("Error fetching reports:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (token && userId) {
       fetchReports();
     }
@@ -78,6 +81,20 @@ export const ReportsList = ({
       setReports(updatedReports);
     } catch (error) {
       console.error("Error voting on report:", error);
+    }
+  };
+
+  const handleEdit = (report: Report) => {
+    setReportToEdit(report);
+    setShowEditForm(true);
+  };
+
+  const handleEditSuccess = () => {
+    setShowEditForm(false);
+    setReportToEdit(null);
+    // Refresh the reports list
+    if (token && userId) {
+      fetchReports();
     }
   };
 
@@ -95,9 +112,28 @@ export const ReportsList = ({
       return true;
     })
     .sort((a, b) => {
+      // Debug logs
+      console.log('Sorting reports:', {
+        a: { id: a.id, isEdited: a.isEdited, updatedAt: a.updatedAt, createdAt: a.createdAt },
+        b: { id: b.id, isEdited: b.isEdited, updatedAt: b.updatedAt, createdAt: b.createdAt }
+      });
+
       if (sortBy === "newest") {
+        // If both reports are edited, compare by updatedAt
+        if (a.isEdited && b.isEdited) {
+          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        }
+        // If only one report is edited, it should come first
+        if (a.isEdited) return -1;
+        if (b.isEdited) return 1;
+        // If neither is edited, compare by createdAt
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       } else if (sortBy === "oldest") {
+        if (a.isEdited && b.isEdited) {
+          return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+        }
+        if (a.isEdited) return 1;
+        if (b.isEdited) return -1;
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       } else if (sortBy === "most_voted") {
         return (b.votes || 0) - (a.votes || 0);
@@ -169,6 +205,21 @@ export const ReportsList = ({
 
   return (
     <div className="space-y-6">
+      {/* Edit Form Modal */}
+      {showEditForm && reportToEdit && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm">
+          <div className="min-h-screen px-4 flex items-center justify-center">
+            <div className="relative z-50 w-full max-w-4xl my-8">
+              <ReportForm
+                mode="edit"
+                reportToEdit={reportToEdit}
+                onSubmitSuccess={handleEditSuccess}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Filters and Sort */}
       <Card className="bg-[#18230F] dark:bg-gray-800 border-[#255F38] dark:border-gray-700">
         <CardContent className="p-4">
@@ -266,7 +317,14 @@ export const ReportsList = ({
                           <ChevronDown className="h-4 w-4 text-white/60" />
                         )}
                         <div>
-                          <div className="font-medium">{report.title}</div>
+                          <div className="font-medium flex items-center gap-2">
+                            {report.title}
+                            {report.isEdited && (
+                              <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">
+                                Edited
+                              </span>
+                            )}
+                          </div>
                           <div className="text-sm text-white/60">
                             {report.category}
                           </div>
@@ -274,7 +332,7 @@ export const ReportsList = ({
                       </div>
                     </TableCell>
                     <TableCell className="text-white">
-                      {report.location}
+                      {report.locationName || report.location}
                     </TableCell>
                     <TableCell className="text-white">
                       {formatDate(report.createdAt)}
@@ -291,6 +349,17 @@ export const ReportsList = ({
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1 items-center">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-white/60 hover:text-white hover:bg-[#255F38]/20"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(report);
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         {Array.isArray(report.imageUrls) &&
                           report.imageUrls.length > 0 && (
                             <Button
