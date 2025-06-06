@@ -92,8 +92,21 @@ export const CommunityReportsCards = ({
     })
     .sort((a, b) => {
       if (sortBy === "newest") {
+        // If both reports are edited, compare by updatedAt
+        if (a.isEdited && b.isEdited) {
+          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        }
+        // If only one report is edited, it should come first
+        if (a.isEdited) return -1;
+        if (b.isEdited) return 1;
+        // If neither is edited, compare by createdAt
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       } else if (sortBy === "oldest") {
+        if (a.isEdited && b.isEdited) {
+          return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+        }
+        if (a.isEdited) return 1;
+        if (b.isEdited) return -1;
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       }
       return 0;
@@ -233,7 +246,14 @@ export const CommunityReportsCards = ({
             >
               <CardContent className="p-4 space-y-3">
                 <div className="flex justify-between items-start gap-2">
-                  <h3 className="text-lg font-semibold line-clamp-2">{report.title}</h3>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold line-clamp-2">{report.title}</h3>
+                    {report.isEdited && (
+                      <span className="inline-block mt-1 text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">
+                        Edited
+                      </span>
+                    )}
+                  </div>
                   <div
                     className={`flex items-center text-xs px-2 py-1 rounded-full whitespace-nowrap ${getStatusBadgeClass(
                       report.status
@@ -266,7 +286,7 @@ export const CommunityReportsCards = ({
                 <div className="text-sm text-white/70">
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
-                    {formatLocation(report.location)}
+                    {report.locationName || formatLocation(report.location)}
                   </div>
                 </div>
 
@@ -274,6 +294,11 @@ export const CommunityReportsCards = ({
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
                     {formatDate(report.createdAt)}
+                    {report.isEdited && (
+                      <span className="text-xs text-white/30">
+                        (Updated: {formatDate(report.updatedAt)})
+                      </span>
+                    )}
                   </div>
                   <div className="text-sm">{report.residentName}</div>
                 </div>
