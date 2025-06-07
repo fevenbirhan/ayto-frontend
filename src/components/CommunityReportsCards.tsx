@@ -15,6 +15,7 @@ import {
   X,
   MessageSquare,
   ThumbsUp,
+  ThumbsDown,
   Image as ImageIcon,
   MapPin,
 } from "lucide-react";
@@ -40,6 +41,7 @@ export const CommunityReportsCards = ({
   const [sortBy, setSortBy] = useState<string>("newest");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [votingInProgress, setVotingInProgress] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -172,6 +174,46 @@ export const CommunityReportsCards = ({
     return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
   };
 
+  const handleVote = async (reportId: string, type: "upvote" | "downvote", e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!token) {
+      toast({
+        title: "Error",
+        description: "Please log in to vote on reports",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (votingInProgress[reportId]) {
+      return; // Prevent multiple votes while processing
+    }
+
+    try {
+      setVotingInProgress(prev => ({ ...prev, [reportId]: true }));
+
+      let updatedReport;
+      if (type === "upvote") {
+        updatedReport = await reportService.upvoteReport(reportId, token);
+      } else {
+        updatedReport = await reportService.downvoteReport(reportId, token);
+      }
+
+      // Update only the specific report in the state
+      setReports(prevReports => 
+        prevReports.map(report => 
+          report.id === reportId ? updatedReport : report
+        )
+      );
+    } catch (error: any) {
+      console.error("Error voting on report:", error);
+    } finally {
+      setVotingInProgress(prev => ({ ...prev, [reportId]: false }));
+    }
+  };
+
   return (
     <div className="space-y-6">
       {!isPersonal && (
@@ -300,7 +342,39 @@ export const CommunityReportsCards = ({
                       </span>
                     )}
                   </div>
-                  <div className="text-sm">{report.residentName}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-8 w-8 ${
+                          votingInProgress[report.id]
+                            ? "opacity-50 cursor-not-allowed"
+                            : "text-white/60 hover:text-white hover:bg-[#255F38]/20"
+                        }`}
+                        onClick={(e) => handleVote(report.id, "upvote", e)}
+                        disabled={votingInProgress[report.id]}
+                      >
+                        <ThumbsUp className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm">{report.upvotes || 0}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-8 w-8 ${
+                          votingInProgress[report.id]
+                            ? "opacity-50 cursor-not-allowed"
+                            : "text-white/60 hover:text-white hover:bg-[#255F38]/20"
+                        }`}
+                        onClick={(e) => handleVote(report.id, "downvote", e)}
+                        disabled={votingInProgress[report.id]}
+                      >
+                        <ThumbsDown className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm">{report.downvotes || 0}</span>
+                    </div>
+                    <div className="text-sm">{report.residentName}</div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

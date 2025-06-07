@@ -12,8 +12,8 @@ export interface Report {
   residentName: string;
   createdAt: string;
   updatedAt: string;
-  votes?: number;  // optional
-  comments?: any[];
+  upvotes: number;  // Separate count for upvotes
+  downvotes: number;  // Separate count for downvotes
   isEdited: boolean;
 }
 
@@ -96,10 +96,20 @@ class ReportService {
 
   async getReportsByUser(userId: string, token: string): Promise<Report[]> {
     try {
+      // First get the user's reports
       const response = await axios.get(`${this.baseUrl}/resident/${userId}`, {
         headers: this.getHeaders(token)
       });
-      return response.data;
+      
+      // Then get the full details for each report to ensure we have current vote counts
+      const reports = await Promise.all(
+        response.data.map(async (report: Report) => {
+          const fullReport = await this.getReportById(report.id, token);
+          return fullReport;
+        })
+      );
+      
+      return reports;
     } catch (error: any) {
       if (error.response?.status === 403) {
         throw new Error('You do not have permission to view these reports.');
@@ -133,6 +143,34 @@ class ReportService {
     } catch (error: any) {
       if (error.response?.status === 403) {
         throw new Error('You do not have permission to delete reports.');
+      }
+      throw error;
+    }
+  }
+
+  async upvoteReport(reportId: string, token: string): Promise<Report> {
+    try {
+      const response = await axios.post(`${this.baseUrl}/${reportId}/upvote`, {}, {
+        headers: this.getHeaders(token)
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to vote on reports.');
+      }
+      throw error;
+    }
+  }
+
+  async downvoteReport(reportId: string, token: string): Promise<Report> {
+    try {
+      const response = await axios.post(`${this.baseUrl}/${reportId}/downvote`, {}, {
+        headers: this.getHeaders(token)
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to vote on reports.');
       }
       throw error;
     }

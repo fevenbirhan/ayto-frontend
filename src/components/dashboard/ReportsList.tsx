@@ -52,17 +52,24 @@ export const ReportsList = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [reportToEdit, setReportToEdit] = useState<Report | null>(null);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [votingInProgress, setVotingInProgress] = useState<Record<string, boolean>>({});
+  const [error, setError] = useState<string | null>(null);
 
   const fetchReports = async () => {
     try {
       setLoading(true);
+      setError(null);
+
       const fetchedReports = await reportService.getReportsByUser(
         userId,
         token
       );
+      
+      // Ensure we have the latest data including vote counts
       setReports(fetchedReports);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching reports:", error);
+      setError(error.message || "Failed to load reports");
     } finally {
       setLoading(false);
     }
@@ -74,13 +81,45 @@ export const ReportsList = ({
     }
   }, [token, userId]);
 
+  // Refresh reports periodically to keep vote counts in sync
+  useEffect(() => {
+    if (!token || !userId) return;
+
+    const intervalId = setInterval(() => {
+      fetchReports();
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(intervalId);
+  }, [token, userId]);
+
   const handleVote = async (reportId: string, type: "upvote" | "downvote") => {
     try {
-      //await reportService.voteReport(reportId, type, token);
-      const updatedReports = await reportService.getReportsByUser(userId, token);
-      setReports(updatedReports);
+      if (votingInProgress[reportId]) {
+        return;
+      }
+
+      setVotingInProgress(prev => ({ ...prev, [reportId]: true }));
+
+      let updatedReport;
+      if (type === "upvote") {
+        updatedReport = await reportService.upvoteReport(reportId, token);
+      } else {
+        updatedReport = await reportService.downvoteReport(reportId, token);
+      }
+
+      // Update the specific report and trigger a full refresh
+      setReports(prevReports => 
+        prevReports.map(report => 
+          report.id === reportId ? updatedReport : report
+        )
+      );
+      
+      // Fetch all reports again to ensure everything is in sync
+      fetchReports();
     } catch (error) {
       console.error("Error voting on report:", error);
+    } finally {
+      setVotingInProgress(prev => ({ ...prev, [reportId]: false }));
     }
   };
 
@@ -112,12 +151,6 @@ export const ReportsList = ({
       return true;
     })
     .sort((a, b) => {
-      // Debug logs
-      console.log('Sorting reports:', {
-        a: { id: a.id, isEdited: a.isEdited, updatedAt: a.updatedAt, createdAt: a.createdAt },
-        b: { id: b.id, isEdited: b.isEdited, updatedAt: b.updatedAt, createdAt: b.createdAt }
-      });
-
       if (sortBy === "newest") {
         // If both reports are edited, compare by updatedAt
         if (a.isEdited && b.isEdited) {
@@ -136,7 +169,10 @@ export const ReportsList = ({
         if (b.isEdited) return -1;
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       } else if (sortBy === "most_voted") {
-        return (b.votes || 0) - (a.votes || 0);
+        // Compare total votes (upvotes - downvotes)
+        const aTotal = (a.upvotes || 0) - (a.downvotes || 0);
+        const bTotal = (b.upvotes || 0) - (b.downvotes || 0);
+        return bTotal - aTotal;
       }
       return 0;
     });
@@ -370,18 +406,7 @@ export const ReportsList = ({
                               <Image className="h-4 w-4" />
                             </Button>
                           )}
-                        {/*report.commentsCount > 0 && (
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-white/60 hover:text-white hover:bg-[#255F38]/20"
-                            >
-                              <MessageSquare className="h-4 w-4" />
-                            </Button>
-                            <span className="text-sm">{report.commentsCount}</span>
-                          </div>
-                        )*/}
+                        
                         <div className="flex items-center gap-1 text-white">
                           <Button
                             variant="ghost"
@@ -391,10 +416,11 @@ export const ReportsList = ({
                               e.stopPropagation();
                               handleVote(report.id, "upvote");
                             }}
+                            disabled={votingInProgress[report.id]}
                           >
                             <ThumbsUp className="h-4 w-4" />
                           </Button>
-                          <span className="text-sm">{report.votes}</span>
+                          <span className="text-sm">{report.upvotes || 0}</span>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -403,9 +429,11 @@ export const ReportsList = ({
                               e.stopPropagation();
                               handleVote(report.id, "downvote");
                             }}
+                            disabled={votingInProgress[report.id]}
                           >
                             <ThumbsDown className="h-4 w-4" />
                           </Button>
+                          <span className="text-sm">{report.downvotes || 0}</span>
                         </div>
                       </div>
                     </TableCell>
