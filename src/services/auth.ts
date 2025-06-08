@@ -22,6 +22,8 @@ interface GovernmentRegisterData {
     email: string;
     password: string;
     phoneNumber: string;
+    location: string;
+    description: string;
     role?: string;
     accountStatus?: string;
 }

@@ -18,6 +18,8 @@ const Register = () => {
     nationalId: "",
     password: "",
     confirmPassword: "",
+    location: "",
+    description: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -78,7 +80,9 @@ const Register = () => {
           name: formData.firstName,
           email: formData.email,
           password: formData.password,
-          phoneNumber: formData.phoneNumber
+          phoneNumber: formData.phoneNumber,
+          location: formData.location,
+          description: formData.description,
         };
         await authService.registerGovernment(governmentData);
       } else {
@@ -213,6 +217,36 @@ const Register = () => {
                   required
                 />
               </div>
+            )}
+
+            {userType === 'government' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="location" className="text-white">Location</Label>
+                  <Input
+                    id="location"
+                    name="location"
+                    placeholder="Office location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    className="bg-[#1A1A1A] text-white border-[#404040]"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-white">Description</Label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    placeholder="Office description"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    className="w-full min-h-[100px] rounded-md bg-[#1A1A1A] text-white border border-[#404040] p-2"
+                    required
+                  />
+                </div>
+              </>
             )}
 
             <div className="space-y-2">
