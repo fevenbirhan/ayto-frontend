@@ -4,14 +4,14 @@ import { Button } from "./button";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface PasswordInputProps extends Omit<ComponentPropsWithoutRef<"input">, "type"> {
+interface PasswordInputProps extends Omit<ComponentPropsWithoutRef<"input">, "type" | "size"> {
   showToggle?: boolean;
 }
 
-export const PasswordInput = ({ 
+export const PasswordInput = ({
   className,
   showToggle = true,
-  ...props 
+  ...props
 }: PasswordInputProps) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -28,7 +28,7 @@ export const PasswordInput = ({
           variant="ghost"
           size="sm"
           className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-          onClick={() => setShowPassword(!showPassword)}
+          onClick={() => setShowPassword((prev) => !prev)}
           tabIndex={-1}
         >
           {showPassword ? (
@@ -40,4 +40,4 @@ export const PasswordInput = ({
       )}
     </div>
   );
-}; 
+};
