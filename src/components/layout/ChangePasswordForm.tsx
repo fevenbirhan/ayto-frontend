@@ -8,6 +8,13 @@ import { PasswordInput } from "@/components/ui/password-input";
 interface ChangePasswordFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  cancelText?: string;     // <-- Add this
+  submitText?: string;     // <-- And this
+}
+
+interface ChangePasswordFormProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
 interface FormData {

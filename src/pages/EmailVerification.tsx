@@ -8,6 +8,9 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { authService } from "@/services/auth";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useTheme } from "@/components/ThemeProvider";
+import { Sun, Moon, Languages } from "lucide-react";
+import {useAuth} from "@/context/AuthContext";
 
 const EmailVerification = () => {
   const [email, setEmail] = useState("");
@@ -16,14 +19,69 @@ const EmailVerification = () => {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
+  const {language, toggleLanguage} = useAuth();
+
+  // Translations
+  const translations = {
+    en: {
+      title: "Email Verification",
+      accountType: "Account Type",
+      resident: "Resident",
+      government: "Government",
+      emailPlaceholder: "Enter your email",
+      getOtp: "Get OTP",
+      enterOtp: "Enter OTP",
+      verifyOtp: "Verify OTP",
+      resendOtp: "Resend OTP",
+      resendIn: "Resend OTP in",
+      sending: "Sending...",
+      verifying: "Verifying...",
+      success: "Success",
+      error: "Error",
+      invalidEmail: "Please enter a valid email address",
+      invalidOtp: "Please enter the OTP",
+      otpSent: "OTP sent successfully! Please check your email.",
+      emailVerified: "Email verified successfully!",
+      invalidOtpMsg: "Invalid OTP",
+    },
+    am: {
+      title: "የኢሜል ማረጋገጫ",
+      accountType: "የመለያ አይነት",
+      resident: "ተቀማጭ",
+      government: "መንግስት",
+      emailPlaceholder: "ኢሜልዎን ያስገቡ",
+      getOtp: "OTP ያግኙ",
+      enterOtp: "OTP ያስገቡ",
+      verifyOtp: "OTP ያረጋግጡ",
+      resendOtp: "OTP እንደገና ላክ",
+      resendIn: "OTP እንደገና በ",
+      sending: "በመላክ ላይ...",
+      verifying: "በማረጋገጥ ላይ...",
+      success: "ተሳክቷል",
+      error: "ስህተት",
+      invalidEmail: "እባክዎ ትክክለኛ ኢሜል ያስገቡ",
+      invalidOtp: "እባክዎ OTP ያስገቡ",
+      otpSent: "OTP በተሳካ ሁኔታ ተልኳል! እባክዎ ኢሜልዎን ያረጋግጡ።",
+      emailVerified: "ኢሜል በተሳካ ሁኔታ ተረጋግጧል!",
+      invalidOtpMsg: "ትክክል ያልሆነ OTP",
+    },
+  };
+
+  const t = translations[language];
+
+  
+
+
 
   const handleGetOTP = async () => {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       toast({
-        title: "Error",
-        description: "Please enter a valid email address",
+        title: t.error,
+        description: t.invalidEmail,
         variant: "destructive",
       });
       return;
@@ -36,8 +94,8 @@ const EmailVerification = () => {
         : await authService.initiateResidentSignup(email);
       
       toast({
-        title: "Success",
-        description: response.message || "OTP sent successfully! Please check your email.",
+        title: t.success,
+        description: response.message || t.otpSent,
       });
       
       setIsOtpSent(true);
@@ -55,7 +113,7 @@ const EmailVerification = () => {
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || "Failed to send OTP";
       toast({
-        title: "Error",
+        title: t.error,
         description: errorMessage,
         variant: "destructive",
       });
@@ -67,8 +125,8 @@ const EmailVerification = () => {
   const handleVerifyOTP = async () => {
     if (!otp) {
       toast({
-        title: "Error",
-        description: "Please enter the OTP",
+        title: t.error,
+        description: t.invalidOtp,
         variant: "destructive",
       });
       return;
@@ -82,8 +140,8 @@ const EmailVerification = () => {
       
       if (response.success) {
         toast({
-          title: "Success",
-          description: "Email verified successfully!",
+          title: t.success,
+          description: t.emailVerified,
         });
         // Navigate to register page with verified email and type
         navigate("/register", { 
@@ -94,15 +152,15 @@ const EmailVerification = () => {
         });
       } else {
         toast({
-          title: "Error",
-          description: response.message || "Invalid OTP",
+          title: t.error,
+          description: response.message || t.invalidOtpMsg,
           variant: "destructive",
         });
       }
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || "Failed to verify OTP";
       toast({
-        title: "Error",
+        title: t.error,
         description: errorMessage,
         variant: "destructive",
       });
@@ -118,19 +176,44 @@ const EmailVerification = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-background to-muted/20">
       <Header />
-      <main className="flex-1 flex items-center justify-center bg-[#1A1A1A] py-16">
-        <div className="w-full max-w-md bg-[#2D2D2D] p-8 rounded-lg shadow-lg">
-          <h1 className="text-white text-3xl font-bold mb-6 text-center">
-            Email Verification
+      <main className="flex-1 flex items-center justify-center py-16">
+        <div className="w-full max-w-md bg-card p-8 rounded-2xl shadow-2xl border border-border relative overflow-hidden">
+          {/* Decorative elements */}
+          <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/10 rounded-full blur-xl"></div>
+          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-secondary/10 rounded-full blur-xl"></div>
+          
+          {/* Language and theme toggle */}
+          <div className="absolute top-4 right-4 flex gap-2">
+            <Button 
+              onClick={toggleLanguage}
+              variant="ghost"
+              size="icon"
+              className="rounded-full hover:bg-muted"
+            >
+              <Languages className="h-5 w-5" />
+            </Button>
+            <Button 
+              onClick={toggleTheme}
+              variant="ghost"
+              size="icon"
+              className="rounded-full hover:bg-muted"
+            >
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
+          </div>
+
+          <h1 className="text-3xl font-bold mb-6 text-center text-primary relative">
+            {t.title}
+            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-transparent via-primary to-transparent"></div>
           </h1>
 
-          <div className="space-y-6">
+          <div className="space-y-6 relative z-10">
             {!isOtpSent && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-white">Account Type</Label>
+                  <Label>{t.accountType}</Label>
                   <RadioGroup
                     value={userType}
                     onValueChange={(value: "resident" | "government") => setUserType(value)}
@@ -138,11 +221,11 @@ const EmailVerification = () => {
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="resident" id="user-resident" />
-                      <Label htmlFor="user-resident" className="text-white">Resident</Label>
+                      <Label htmlFor="user-resident">{t.resident}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="government" id="user-government" />
-                      <Label htmlFor="user-government" className="text-white">Government</Label>
+                      <Label htmlFor="user-government">{t.government}</Label>
                     </div>
                   </RadioGroup>
                 </div>
@@ -150,17 +233,17 @@ const EmailVerification = () => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white">
+              <Label htmlFor="email">
                 Email Address
               </Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="Enter your email"
+                placeholder={t.emailPlaceholder}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isOtpSent}
-                className="bg-[#1A1A1A] text-white border-[#404040]"
+                className="bg-background"
                 required
               />
             </div>
@@ -169,23 +252,23 @@ const EmailVerification = () => {
               <Button
                 onClick={handleGetOTP}
                 disabled={isLoading || !email}
-                className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white"
+                className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white shadow-lg hover:shadow-primary/30 transition-all"
               >
-                {isLoading ? "Sending..." : "Get OTP"}
+                {isLoading ? t.sending : t.getOtp}
               </Button>
             ) : (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="otp" className="text-white">
-                    Enter OTP
+                  <Label htmlFor="otp">
+                    {t.enterOtp}
                   </Label>
                   <Input
                     id="otp"
                     type="text"
-                    placeholder="Enter OTP"
+                    placeholder={t.enterOtp}
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
-                    className="bg-[#1A1A1A] text-white border-[#404040]"
+                    className="bg-background"
                     maxLength={6}
                     required
                   />
@@ -195,23 +278,23 @@ const EmailVerification = () => {
                   <Button
                     onClick={handleVerifyOTP}
                     disabled={isLoading || !otp}
-                    className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white"
+                    className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white shadow-lg hover:shadow-primary/30 transition-all"
                   >
-                    {isLoading ? "Verifying..." : "Verify OTP"}
+                    {isLoading ? t.verifying : t.verifyOtp}
                   </Button>
 
                   {countdown > 0 ? (
-                    <p className="text-center text-sm text-white/60">
-                      Resend OTP in {formatTime(countdown)}
+                    <p className="text-center text-sm text-muted-foreground">
+                      {t.resendIn} {formatTime(countdown)}
                     </p>
                   ) : (
                     <Button
                       onClick={handleGetOTP}
                       disabled={isLoading}
                       variant="outline"
-                      className="border-[#404040] text-white hover:bg-[#404040]"
+                      className="w-full border-border hover:bg-muted/50"
                     >
-                      Resend OTP
+                      {t.resendOtp}
                     </Button>
                   )}
                 </div>
@@ -225,4 +308,4 @@ const EmailVerification = () => {
   );
 };
 
-export default EmailVerification; 
+export default EmailVerification;

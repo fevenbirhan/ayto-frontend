@@ -1,23 +1,36 @@
 import { Link } from "react-router-dom";
+import { useTheme } from "@/components/ThemeProvider";
+import { useAuth } from "@/context/AuthContext";
+import { Facebook, Instagram, Twitter, Mail, Phone } from "lucide-react";
+interface FooterProps {
+  text: string;
+  darkMode: boolean;
+  language: 'en' | 'am';
+}
 
-export const Footer = () => {
-  const socialIcons = [
-    {
-      src: "https://cdn.builder.io/api/v1/image/assets/TEMP/528821648a6c765991ab4124851e9ded2233c273",
-      alt: "Facebook",
-      href: "https://facebook.com",
+export const Footer = ({ text, darkMode}: FooterProps) => {
+  const { theme } = useTheme();
+  const { language } = useAuth();
+
+  // Translations
+  const translations = {
+    en: {
+      contacts: "Contacts",
+      services: "Services",
+      home: "Home",
+      features: "Features",
+      allRights: "© 2023 AYTO. All rights reserved",
     },
-    {
-      src: "https://cdn.builder.io/api/v1/image/assets/TEMP/20acb199e72c30ad78df728ad15491dd084534c7",
-      alt: "Instagram",
-      href: "https://instagram.com",
-    },
-    {
-      src: "https://cdn.builder.io/api/v1/image/assets/TEMP/9574c8cd33b9097b0bdb1d769a1757fb6cb02eb4",
-      alt: "Twitter",
-      href: "https://twitter.com",
-    },
-  ];
+    am: {
+      contacts: "አድራሻዎች",
+      services: "አገልግሎቶች",
+      home: "መነሻ",
+      features: "ባህሪያት",
+      allRights: "© 2023 አይቶ. መብቶች የተጠበቁ ናቸው",
+    }
+  };
+
+  const t = translations[language as keyof typeof translations] || translations.en;
 
   const handleFeatureClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     if (href === "/#features") {
@@ -30,96 +43,103 @@ export const Footer = () => {
   };
 
   return (
-    <footer className="bg-[#1A1A1A] w-full py-12">
-      <div className="max-w-none mx-auto px-6">
-        <div className="flex justify-between max-md:flex-col max-md:gap-8">
-          <div>
-            <div className="flex items-center gap-2 mb-6">
-              <div className="text-2xl font-bold">
-                <span className="text-[#3B82F6]">AY</span>
-                <span className="text-white">TO</span>
+    <footer className={`w-full py-12 ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'} border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
+      <div className="container mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Brand Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <div className="text-3xl font-bold tracking-tighter">
+                <span className="text-primary">AY</span>
+                <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>TO</span>
               </div>
-              <img
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/32879a82f401035b1aa9dea8ff6938eb1781a7dd"
-                alt="Logo"
-                className="w-[31px] h-[31px] rounded-[53px]"
-              />
+              <div className={`w-8 h-8 rounded-full ${theme === 'dark' ? 'bg-primary/90' : 'bg-primary'} flex items-center justify-center`}>
+                <span className="text-white font-bold text-sm">A</span>
+              </div>
             </div>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+              {t.allRights}
+            </p>
             <div className="flex gap-4">
               <a
                 href="https://facebook.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:opacity-80 transition-opacity"
-                aria-label="Visit our Facebook page"
+                className={`p-2 rounded-full ${theme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}
+                aria-label="Facebook"
               >
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/528821648a6c765991ab4124851e9ded2233c273"
-                  alt="Facebook"
-                  className="w-[20px] h-[20px]"
-                />
+                <Facebook className={`h-5 w-5 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`} />
               </a>
               <a
                 href="https://instagram.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:opacity-80 transition-opacity"
-                aria-label="Visit our Instagram page"
+                className={`p-2 rounded-full ${theme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}
+                aria-label="Instagram"
               >
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/20acb199e72c30ad78df728ad15491dd084534c7"
-                  alt="Instagram"
-                  className="w-[20px] h-[20px]"
-                />
+                <Instagram className={`h-5 w-5 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`} />
               </a>
               <a
                 href="https://twitter.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:opacity-80 transition-opacity"
-                aria-label="Visit our Twitter page"
+                className={`p-2 rounded-full ${theme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}
+                aria-label="Twitter"
               >
-                <img
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/9574c8cd33b9097b0bdb1d769a1757fb6cb02eb4"
-                  alt="Twitter"
-                  className="w-[20px] h-[20px]"
-                />
+                <Twitter className={`h-5 w-5 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`} />
               </a>
             </div>
           </div>
 
-          <div>
-            <h3 className="text-white text-2xl mb-4">Contacts</h3>
-            <a
-              href="tel:+251961236545"
-              className="text-[#3B82F6] text-xl mb-2 block hover:text-white transition-colors"
-            >
-              +251 961236545
-            </a>
-            <a
-              href="mailto:Name@gmail.com"
-              className="text-[#3B82F6] text-xl block hover:text-white transition-colors"
-            >
-              Name@gmail.com
-            </a>
+          {/* Contacts Section */}
+          <div className="space-y-4">
+            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              {t.contacts}
+            </h3>
+            <div className="space-y-2">
+              <a
+                href="tel:+251961236545"
+                className={`flex items-center gap-2 ${theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
+              >
+                <Phone className="h-5 w-5 text-primary" />
+                <span>+251 961236545</span>
+              </a>
+              <a
+                href="mailto:Name@gmail.com"
+                className={`flex items-center gap-2 ${theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
+              >
+                <Mail className="h-5 w-5 text-primary" />
+                <span>Name@gmail.com</span>
+              </a>
+            </div>
           </div>
 
-          <div>
-            <h3 className="text-white text-2xl mb-4">Services</h3>
-            <Link
-              to="/"
-              className="text-[#3B82F6] text-xl mb-2 block hover:text-white transition-colors"
-            >
-              Home
-            </Link>
-            <Link
-              to="/#features"
-              className="text-[#3B82F6] text-xl block hover:text-white transition-colors"
-              onClick={(e) => handleFeatureClick(e, "/#features")}
-            >
-              Features
-            </Link>
+          {/* Services Section */}
+          <div className="space-y-4">
+            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+              {t.services}
+            </h3>
+            <div className="space-y-2">
+              <Link
+                to="/"
+                className={`block ${theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
+              >
+                {t.home}
+              </Link>
+              <Link
+                to="/#features"
+                className={`block ${theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
+                onClick={(e) => handleFeatureClick(e, "/#features")}
+              >
+                {t.features}
+              </Link>
+            </div>
           </div>
+        </div>
+
+        {/* Copyright */}
+        <div className={`mt-12 pt-6 border-t ${theme === 'dark' ? 'border-gray-800 text-gray-400' : 'border-gray-200 text-gray-500'} text-sm text-center`}>
+          {t.allRights}
         </div>
       </div>
     </footer>

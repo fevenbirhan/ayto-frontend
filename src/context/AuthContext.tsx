@@ -1,7 +1,14 @@
-import { createContext, useContext, ReactNode, useState, useEffect } from "react";
+import {
+    createContext,
+    useContext,
+    ReactNode,
+    useState,
+    useEffect
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "@/services/auth";
 
+// ----------------- Auth Context -----------------
 interface AuthContextType {
     token: string | null;
     userRole: string | null;
@@ -11,19 +18,55 @@ interface AuthContextType {
     logout: () => void;
     isAuthenticated: boolean;
     isLoading: boolean;
+    // Language related properties
+    language: "en" | "am";
+    setLanguage: (lang: "en" | "am") => void;
+    toggleLanguage: () => void;
+    // Theme related properties
+    theme: "light" | "dark";
+    toggleTheme: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// ----------------- Auth Provider -----------------
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
     const [userRole, setUserRole] = useState<string | null>(localStorage.getItem("role"));
     const [userName, setUserName] = useState<string | null>(localStorage.getItem("userName"));
     const [userId, setUserId] = useState<string | null>(localStorage.getItem("userId"));
     const [isLoading, setIsLoading] = useState(true);
+
     const navigate = useNavigate();
 
-    // Effect to verify token on app load
+    // ----------------- Theme state -----------------
+    const [theme, setTheme] = useState<"light" | "dark">(() => {
+        return (localStorage.getItem("theme") as "light" | "dark") || "light";
+    });
+
+    useEffect(() => {
+        document.body.setAttribute("data-theme", theme);
+        localStorage.setItem("theme", theme);
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(prev => (prev === "light" ? "dark" : "light"));
+    };
+
+    // ----------------- Language state -----------------
+    const [language, setLanguage] = useState<"en" | "am">(() => {
+        return (localStorage.getItem("language") as "en" | "am") || "en";
+    });
+
+    useEffect(() => {
+        localStorage.setItem("language", language);
+    }, [language]);
+
+    const toggleLanguage = () => {
+        setLanguage(prev => (prev === "en" ? "am" : "en"));
+    };
+
+    // ----------------- Auth Token Verification -----------------
     useEffect(() => {
         const verifyToken = async () => {
             try {
@@ -32,19 +75,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                     return;
                 }
 
-                // Check if token is expired
-                const tokenParts = token.split('.');
+                const tokenParts = token.split(".");
                 if (tokenParts.length === 3) {
                     const payload = JSON.parse(atob(tokenParts[1]));
                     if (payload.exp && payload.exp * 1000 < Date.now()) {
-                        // Token is expired
                         logout();
                         return;
                     }
                 }
                 setIsLoading(false);
             } catch (error) {
-                console.error('Token verification failed:', error);
+                console.error("Token verification failed:", error);
                 logout();
                 setIsLoading(false);
             }
@@ -53,33 +94,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         verifyToken();
     }, [token]);
 
-    // Login function
+    // ----------------- Auth Functions -----------------
     const login = async (email: string, password: string) => {
         setIsLoading(true);
         try {
             const response = await authService.login({ email, password });
-            
+
             setToken(response.token);
             setUserRole(response.role);
             setUserName(response.name);
             setUserId(response.userId);
 
-            // Persist to localStorage
             localStorage.setItem("token", response.token);
             localStorage.setItem("role", response.role);
             localStorage.setItem("userName", response.name);
             localStorage.setItem("userId", response.userId);
         } catch (error) {
-            console.error('Login error:', error);
+            console.error("Login error:", error);
             throw error;
         } finally {
             setIsLoading(false);
         }
     };
 
-    // Logout function
     const logout = () => {
-        authService.logout(); // This will clear localStorage
+        authService.logout();
         localStorage.removeItem("token");
         localStorage.removeItem("role");
         localStorage.removeItem("userName");
@@ -91,8 +130,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         navigate("/login");
     };
 
-    // Context value
-    const value = {
+    const authValue: AuthContextType = {
         token,
         userRole,
         userName,
@@ -101,16 +139,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         logout,
         isAuthenticated: !!token,
         isLoading,
+        // Language context
+        language,
+        setLanguage,
+        toggleLanguage,
+        // Theme context
+        theme,
+        toggleTheme,
     };
 
     return (
-        <AuthContext.Provider value={value}>
+        <AuthContext.Provider value={authValue}>
             {!isLoading && children}
         </AuthContext.Provider>
     );
 };
 
-// Custom hook to use the auth context
+// ----------------- Custom Hook -----------------
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (context === undefined) {
