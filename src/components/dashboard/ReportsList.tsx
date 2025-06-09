@@ -285,17 +285,10 @@ export const ReportsList = ({
                 </SelectTrigger>
                 <SelectContent className="bg-[#1E2A13] dark:bg-gray-700 text-white">
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="Road Damage">Road Damage</SelectItem>
-                  <SelectItem value="Water Shortage">Water Shortage</SelectItem>
-                  <SelectItem value="Waste Management">
-                    Waste Management
-                  </SelectItem>
-                  <SelectItem value="Streetlight Failure">
-                    Streetlight Failure
-                  </SelectItem>
-                  <SelectItem value="Infrastructure">Infrastructure</SelectItem>
-                  <SelectItem value="Public Safety">Public Safety</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
+                  <SelectItem value="Power Authority">Power Authority</SelectItem>
+                  <SelectItem value="Water and Sewerage">Water and Sewerage</SelectItem>
+                  <SelectItem value="Ethio-Tele">Ethio-Tele</SelectItem>
+                  <SelectItem value="Road Transportation">Road Transportation</SelectItem>
                 </SelectContent>
               </Select>
             </div>
