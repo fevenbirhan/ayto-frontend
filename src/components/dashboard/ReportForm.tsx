@@ -189,14 +189,10 @@ export const ReportForm = ({ onSubmitSuccess, reportToEdit, mode = 'create' }: R
   };
 
   const categories = [
-    "Road Damage",
-    "Water Shortage",
-    "Waste Management",
-    "Streetlight Failure",
-    "Public Safety",
-    "Noise Complaint",
-    "Infrastructure",
-    "Other"
+    "Power Authority",
+    "Water and Sewerage",
+    "Ethio-Tele",
+    "Road Transportation"
   ];
 
   return (
