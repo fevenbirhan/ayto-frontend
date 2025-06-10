@@ -35,8 +35,8 @@ const UtilityProviderDashboard = () => {
   const fetchEmployees = async () => {
     try {
       setIsLoading(true);
-      if (token) {
-        const employeesData = await employeeService.getAllEmployees(token);
+      if (token && userId) {
+        const employeesData = await employeeService.getEmployeesByProvider(userId, token);
         setEmployees(employeesData);
       }
     } catch (error) {

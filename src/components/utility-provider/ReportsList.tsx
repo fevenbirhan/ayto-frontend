@@ -1,8 +1,9 @@
 import { useContext, useEffect, useState } from "react";
-import { Report, reportService } from "@/services/report";
+import { Report } from "@/services/report";
 import { AuthContext } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { ReportCard } from "@/components/reports/ReportCard";
+import { utilityProviderService } from "@/services/utility-provider";
 
 export const ReportsList = () => {
   const { token, userId } = useContext(AuthContext);
@@ -19,11 +20,11 @@ export const ReportsList = () => {
 
       try {
         console.log('Fetching reports for provider:', userId);
-        const allReports = await reportService.getAllReports(token);
-        console.log('Total reports fetched:', allReports.length);
+        const providerReports = await utilityProviderService.getProviderReports(userId, token);
+        console.log('Total reports fetched:', providerReports.length);
         
         // Debug each report's provider ID
-        allReports.forEach(report => {
+        providerReports.forEach(report => {
           console.log('Report:', {
             id: report.id,
             title: report.title,
@@ -33,29 +34,13 @@ export const ReportsList = () => {
           });
         });
         
-        // Filter reports for this provider that are pending
-        const providerReports = allReports.filter(report => {
-          const isMatch = report.utilityProviderId === userId && report.status === 'PENDING';
-          console.log(`Report ${report.id} match check:`, {
-            reportProviderId: report.utilityProviderId,
-            currentUserId: userId,
-            status: report.status,
-            isMatch
-          });
-          return isMatch;
-        });
-        
-        console.log('Filtered reports for provider:', {
-          providerId: userId,
-          reportCount: providerReports.length,
-          reports: providerReports.map(r => ({
-            id: r.id,
-            title: r.title,
-            category: r.category
-          }))
-        });
+        // Filter reports that are pending or in progress
+        const activeReports = providerReports.filter(report => 
+          report.status === 'PENDING' || report.status === 'IN_PROGRESS'
+        );
+        console.log('Filtered active reports:', activeReports.length);
 
-        setReports(providerReports);
+        setReports(activeReports);
       } catch (error: any) {
         console.error('Error fetching reports:', error);
         toast({

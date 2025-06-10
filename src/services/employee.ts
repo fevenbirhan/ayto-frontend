@@ -72,6 +72,21 @@ class EmployeeService {
     }
   }
 
+  async getEmployeesByProvider(providerId: string, token: string): Promise<Employee[]> {
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/utility-provider/${providerId}`,
+        { headers: this.getHeaders(token) }
+      );
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to view provider employees.');
+      }
+      throw error;
+    }
+  }
+
   async updateEmployee(employeeId: string, data: Partial<Employee>, token: string): Promise<Employee> {
     try {
       // When updating team leader status, we need to ensure the role stays as EMPLOYEE

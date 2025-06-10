@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { AuthContext } from "@/context/AuthContext";
-import { Report, reportService } from "@/services/report";
+import { Report } from "@/services/report";
+import { utilityProviderService } from "@/services/utility-provider";
 
 const ReturnedReports = () => {
   const { toast } = useToast();
@@ -17,10 +18,10 @@ const ReturnedReports = () => {
 
       try {
         setIsLoading(true);
-        // Filter reports with REJECTED status
-        const allReports = await reportService.getAllReports(token);
-        const returnedReports = allReports.filter(
-          report => report.status === 'REJECTED' && report.utilityProviderId === userId
+        // Get provider reports and filter for REJECTED status
+        const providerReports = await utilityProviderService.getProviderReports(userId, token);
+        const returnedReports = providerReports.filter(
+          report => report.status === 'REJECTED'
         );
         setReports(returnedReports);
       } catch (error) {
@@ -36,7 +37,7 @@ const ReturnedReports = () => {
     };
 
     fetchReturnedReports();
-  }, [token, userId]);
+  }, [token, userId, toast]);
 
   if (isLoading) {
     return (
