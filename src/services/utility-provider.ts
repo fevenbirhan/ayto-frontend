@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Report } from './report';
 
 export interface UtilityProvider {
   id: string;
@@ -60,6 +61,21 @@ class UtilityProviderService {
     } catch (error: any) {
       if (error.response?.status === 403) {
         throw new Error('You do not have permission to view utility providers.');
+      }
+      throw error;
+    }
+  }
+
+  async getProviderReports(providerId: string, token: string): Promise<Report[]> {
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/${providerId}/reports`,
+        { headers: this.getHeaders(token) }
+      );
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to view provider reports.');
       }
       throw error;
     }

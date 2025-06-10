@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ReportRouter } from './report-router';
 
 export interface Report {
   id: string;
@@ -15,6 +16,8 @@ export interface Report {
   upvotes: number;  // Separate count for upvotes
   downvotes: number;  // Separate count for downvotes
   isEdited: boolean;
+  assignedTeamId?: string;
+  utilityProviderId?: string;
 }
 
 export interface CreateReportFormFields {
@@ -66,13 +69,54 @@ class ReportService {
         }
       }
 
+      console.log('Creating report with data:', {
+        title: formData.get('title'),
+        category: formData.get('category'),
+        location: formData.get('location'),
+        locationName: formData.get('locationName')
+      });
+
+      // Create the report
       const response = await axios.post(this.baseUrl, formData, {
         headers: {
           ...this.getHeaders(token),
         }
       });
-      return response.data;
+
+      const createdReport = response.data;
+      console.log('Report created successfully:', createdReport);
+
+      // Find matching provider
+      const matchingProvider = await ReportRouter.findMatchingProvider(createdReport, token);
+      
+      if (matchingProvider) {
+        console.log('Found matching provider:', matchingProvider.id);
+        try {
+          // Update the report with the provider ID
+          const updatedReport = await axios.put(
+            `${this.baseUrl}/${createdReport.id}/status`,
+            { 
+              status: 'PENDING',
+              utilityProviderId: matchingProvider.id 
+            },
+            {
+              headers: {
+                ...this.getHeaders(token),
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+          console.log('Report assigned to provider:', updatedReport.data);
+          return updatedReport.data;
+        } catch (error) {
+          console.error('Failed to assign provider, but report was created:', error);
+          return createdReport;
+        }
+      }
+
+      return createdReport;
     } catch (error: any) {
+      console.error('Error in createReport:', error);
       if (error.response?.status === 403) {
         throw new Error('You do not have permission to create reports.');
       }
@@ -118,16 +162,31 @@ class ReportService {
     }
   }
 
-  async updateReportStatus(reportId: string, status: UpdateReportStatusData, token: string): Promise<Report> {
+  async updateReportStatus(
+    reportId: string, 
+    data: UpdateReportStatusData & { utilityProviderId?: string }, 
+    token: string
+  ): Promise<Report> {
     try {
-      const response = await axios.put(`${this.baseUrl}/${reportId}/status`, status, {
-        headers: {
-          ...this.getHeaders(token),
-          'Content-Type': 'application/json'
-        }
+      console.log('Updating report status:', {
+        reportId,
+        status: data.status,
+        utilityProviderId: data.utilityProviderId
       });
+
+      const response = await axios.put(
+        `${this.baseUrl}/${reportId}/status`,
+        data,
+        {
+          headers: {
+            ...this.getHeaders(token),
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       return response.data;
     } catch (error: any) {
+      console.error('Error updating report status:', error);
       if (error.response?.status === 403) {
         throw new Error('You do not have permission to update report status.');
       }
@@ -200,6 +259,22 @@ class ReportService {
     } catch (error: any) {
       if (error.response?.status === 403) {
         throw new Error('You do not have permission to update reports.');
+      }
+      throw error;
+    }
+  }
+
+  async assignMaintenanceTeam(reportId: string, teamId: string, token: string): Promise<Report> {
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/${reportId}/assign-team`,
+        { teamId },
+        { headers: this.getHeaders(token) }
+      );
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to assign maintenance teams.');
       }
       throw error;
     }
