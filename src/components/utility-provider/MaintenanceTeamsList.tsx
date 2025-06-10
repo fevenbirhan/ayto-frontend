@@ -22,7 +22,12 @@ const MaintenanceTeamsList = ({ refreshTrigger = 0 }: MaintenanceTeamsListProps)
         setIsLoading(true);
         if (token && userId) {
           const teamsData = await maintenanceTeamService.getAllMaintenanceTeams(token);
-          setTeams(teamsData);
+          // Ensure employees array is initialized for each team
+          const teamsWithEmployees = teamsData.map(team => ({
+            ...team,
+            employees: team.employees || []
+          }));
+          setTeams(teamsWithEmployees);
         }
       } catch (error) {
         console.error('Error fetching teams:', error);
@@ -106,4 +111,4 @@ const MaintenanceTeamsList = ({ refreshTrigger = 0 }: MaintenanceTeamsListProps)
   );
 };
 
-export default MaintenanceTeamsList; 
+export default MaintenanceTeamsList;
