@@ -3,6 +3,7 @@
 @tailwind utilities;
 @import 'maplibre-gl/dist/maplibre-gl.css';
 
+
 @layer base {
   :root {
     --background: 0 0% 100%;

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import {
   TableHeader, 
   TableRow, 
   TableHead, 
-  TableBody, 
+ TableBody, 
   TableCell 
 } from "@/components/ui/table";
 import { 
@@ -35,6 +34,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AssignmentPanel } from "./AssignmentPanel";
+import { useTheme } from "@/components/ThemeProvider";
+import { useAuth } from "@/context/AuthContext";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type ReportQueueProps = {
   searchQuery: string;
@@ -122,9 +125,93 @@ const mockReports = [
   }
 ];
 
+// Translation dictionary
+const translations = {
+  en: {
+    incomingQueue: "Incoming Report Queue",
+    totalReports: "Total reports",
+    id: "ID",
+    title: "Title",
+    category: "Category",
+    location: "Location",
+    reported: "Reported",
+    status: "Status",
+    actions: "Actions",
+    view: "View",
+    assign: "Assign",
+    noReports: "No reports found. Try adjusting your search or filters.",
+    showing: "Showing",
+    of: "of",
+    reports: "reports",
+    previous: "Previous",
+    next: "Next",
+    reportDetails: "Report Details",
+    submittedOn: "Submitted on",
+    description: "Description",
+    mediaEvidence: "Media Evidence",
+    noMedia: "No media attached",
+    reportInfo: "Report Information",
+    priorityNotSet: "Not set",
+    assignReport: "Assign Report",
+    approve: "Approve",
+    reject: "Reject",
+    contactResident: "Contact Resident",
+    residentCommunication: "Resident Communication",
+    noComments: "No comments yet",
+    reportHistory: "Report History",
+    reportCreated: "Report Created",
+    commentAdded: "Comment Added",
+    close: "Close",
+    assignToTeam: "Assign to Team",
+    assignDescription: "Assign this report to a department or maintenance team"
+  },
+  am: {
+    incomingQueue: "የሪፖርት ወረፋ",
+    totalReports: "ጠቅላላ ሪፖርቶች",
+    id: "መለያ",
+    title: "ርዕስ",
+    category: "ምድብ",
+    location: "አካባቢ",
+    reported: "የቀረበው",
+    status: "ሁኔታ",
+    actions: "ድርጊቶች",
+    view: "እይታ",
+    assign: "መድረስ",
+    noReports: "ምንም ሪፖርት አልተገኘም። �ይ ፍለጋ ወይም ማጣሪያዎችን ይለውጡ።",
+    showing: "በማሳየት ላይ",
+    of: "ከ",
+    reports: "ሪፖርቶች",
+    previous: "ቀዳሚ",
+    next: "ቀጣይ",
+    reportDetails: "የሪፖርት ዝርዝሮች",
+    submittedOn: "ቀርቧል በ",
+    description: "መግለጫ",
+    mediaEvidence: "ሚዲያ ማስረጃ",
+    noMedia: "ምንም ሚዲያ አልተያዘም",
+    reportInfo: "የሪፖርት መረጃ",
+    priorityNotSet: "አልተዘጋጀም",
+    assignReport: "ሪፖርት መድረስ",
+    approve: "መጽደቅ",
+    reject: "መቃወም",
+    contactResident: "ከሰው ሰራሽ ጋር ያገናኙ",
+    residentCommunication: "ከሰው ሰራሽ ጋር ያለው ግንኙነት",
+    noComments: "እስካሁን አስተያየት የለም",
+    reportHistory: "የሪፖርት ታሪክ",
+    reportCreated: "ሪፖርት ተፈጥሯል",
+    commentAdded: "አስተያየት ታክሏል",
+    close: "ዝጋ",
+    assignToTeam: "ለቡድን መድረስ",
+    assignDescription: "ይህን ሪፖርት ለአንድ ክፍል ወይም ለጥገና ቡድን ይላኩ"
+  }
+};
+
 export const ReportQueue = ({ searchQuery, filters }: ReportQueueProps) => {
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [isAssigning, setIsAssigning] = useState(false);
+  const { theme } = useTheme();
+  const { language } = useAuth();
+  
+  const t = translations[language as keyof typeof translations] || translations.en;
   
   const filteredReports = mockReports.filter(report => {
     // Apply search query
@@ -156,174 +243,183 @@ export const ReportQueue = ({ searchQuery, filters }: ReportQueueProps) => {
 
   return (
     <>
-      <Card>
+      <Card className="rounded-xl shadow-sm">
         <CardContent className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Incoming Report Queue</h2>
-            <p className="text-sm text-muted-foreground">Total: {filteredReports.length} reports</p>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-semibold">{t.incomingQueue}</h2>
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-muted-foreground">
+                {t.totalReports}: <span className="font-medium">{filteredReports.length}</span>
+              </p>
+            </div>
           </div>
           
-          <div className="border rounded-md">
+          <div className="border rounded-lg overflow-hidden">
             <Table>
-              <TableHeader>
+              <TableHeader className={theme === "dark" ? "bg-gray-900" : "bg-gray-50"}>
                 <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Reported</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="font-medium">{t.id}</TableHead>
+                  <TableHead className="font-medium">{t.title}</TableHead>
+                  <TableHead className="font-medium">{t.category}</TableHead>
+                  <TableHead className="font-medium">{t.location}</TableHead>
+                  <TableHead className="font-medium">{t.reported}</TableHead>
+                  <TableHead className="font-medium">{t.status}</TableHead>
+                  <TableHead className="font-medium text-right">{t.actions}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredReports.length > 0 ? (
                   filteredReports.map((report) => (
-                    <TableRow key={report.id}>
+                    <TableRow key={report.id} className="hover:bg-muted/50">
                       <TableCell className="font-medium">{report.id}</TableCell>
-                      <TableCell>{report.title}</TableCell>
+                      <TableCell className="font-medium">{report.title}</TableCell>
                       <TableCell>{report.category}</TableCell>
                       <TableCell>
-                        <div className="flex items-center">
-                          <MapPin className="h-3 w-3 mr-1 text-muted-foreground" />
-                          {report.location}
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span>{report.location}</span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center">
-                          <Clock className="h-3 w-3 mr-1 text-muted-foreground" />
-                          {report.reportedAt.split(' ')[0]}
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <span>{report.reportedAt.split(' ')[0]}</span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 px-2 py-1 rounded-full text-xs font-medium">
+                        <Badge variant="outline" className="border-blue-200 text-blue-800 dark:border-blue-800 dark:text-blue-200">
                           {report.status}
-                        </span>
+                        </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
+                        <div className="flex justify-end gap-2">
                           <Dialog>
                             <DialogTrigger asChild>
                               <Button 
                                 variant="outline" 
                                 size="sm"
+                                className="gap-1"
                                 onClick={() => setSelectedReport(report)}
                               >
-                                <Eye className="h-3 w-3 mr-1" /> View
+                                <Eye className="h-4 w-4" /> {t.view}
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-3xl">
                               <DialogHeader>
                                 <DialogTitle>{selectedReport?.title}</DialogTitle>
                                 <DialogDescription>
-                                  Report ID: {selectedReport?.id} · Submitted on {selectedReport?.reportedAt}
+                                  {t.reportDetails}: {selectedReport?.id} · {t.submittedOn} {selectedReport?.reportedAt}
                                 </DialogDescription>
                               </DialogHeader>
                               
                               <Tabs defaultValue="details" className="mt-4">
-                                <TabsList>
-                                  <TabsTrigger value="details">Details</TabsTrigger>
-                                  <TabsTrigger value="communication">Communication</TabsTrigger>
-                                  <TabsTrigger value="history">History</TabsTrigger>
+                                <TabsList className="grid grid-cols-3 w-full">
+                                  <TabsTrigger value="details">{t.reportDetails}</TabsTrigger>
+                                  <TabsTrigger value="communication">{t.residentCommunication}</TabsTrigger>
+                                  <TabsTrigger value="history">{t.reportHistory}</TabsTrigger>
                                 </TabsList>
                                 
                                 <TabsContent value="details" className="mt-4">
                                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div className="md:col-span-2 space-y-4">
+                                    <div className="md:col-span-2 space-y-6">
                                       <div>
-                                        <h3 className="text-sm font-medium text-muted-foreground flex items-center">
-                                          <FileText className="h-4 w-4 mr-1" />
-                                          Description
+                                        <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                          <FileText className="h-4 w-4" />
+                                          {t.description}
                                         </h3>
-                                        <p className="mt-1 text-base">{selectedReport?.description}</p>
+                                        <p className="mt-2 text-base">{selectedReport?.description}</p>
                                       </div>
                                       
                                       <Separator />
                                       
                                       <div>
-                                        <h3 className="text-sm font-medium text-muted-foreground flex items-center">
-                                          <MapPin className="h-4 w-4 mr-1" />
-                                          Location
+                                        <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                          <MapPin className="h-4 w-4" />
+                                          {t.location}
                                         </h3>
-                                        <p className="mt-1 text-base">{selectedReport?.location}</p>
+                                        <p className="mt-2 text-base">{selectedReport?.location}</p>
                                       </div>
                                       
                                       <Separator />
                                       
                                       <div>
-                                        <h3 className="text-sm font-medium text-muted-foreground flex items-center">
-                                          <Image className="h-4 w-4 mr-1" />
-                                          Media Evidence
+                                        <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                          <Image className="h-4 w-4" />
+                                          {t.mediaEvidence}
                                         </h3>
-                                        <div className="mt-2 grid grid-cols-2 gap-2">
+                                        <div className="mt-3 grid grid-cols-2 gap-3">
                                           {selectedReport?.images.map((img: string, idx: number) => (
                                             <img 
                                               key={idx} 
                                               src={img} 
                                               alt={`Evidence ${idx + 1}`} 
-                                              className="rounded-md border object-cover h-40 w-full"
+                                              className="rounded-lg border object-cover h-48 w-full"
                                             />
                                           ))}
                                           {selectedReport?.images.length === 0 && (
-                                            <p className="text-muted-foreground">No media attached</p>
+                                            <p className="text-muted-foreground">{t.noMedia}</p>
                                           )}
                                         </div>
                                       </div>
                                     </div>
                                     
-                                    <div className="space-y-4">
-                                      <Card>
-                                        <CardContent className="p-4">
-                                          <h3 className="font-medium mb-2">Report Information</h3>
-                                          <div className="space-y-2 text-sm">
+                                    <div className="space-y-6">
+                                      <Card className="border rounded-lg">
+                                        <CardContent className="p-5">
+                                          <h3 className="font-medium mb-4">{t.reportInfo}</h3>
+                                          <div className="space-y-3 text-sm">
                                             <div className="flex justify-between">
-                                              <span className="text-muted-foreground">Category:</span>
+                                              <span className="text-muted-foreground">{t.category}:</span>
                                               <span className="font-medium">{selectedReport?.category}</span>
                                             </div>
                                             <div className="flex justify-between">
-                                              <span className="text-muted-foreground">Status:</span>
+                                              <span className="text-muted-foreground">{t.status}:</span>
                                               <span className="font-medium">{selectedReport?.status}</span>
                                             </div>
                                             <div className="flex justify-between">
                                               <span className="text-muted-foreground">Priority:</span>
-                                              <span className="font-medium">{selectedReport?.priority || "Not set"}</span>
+                                              <span className="font-medium">{selectedReport?.priority || t.priorityNotSet}</span>
                                             </div>
                                             <Separator />
                                             <div className="flex justify-between">
                                               <span className="text-muted-foreground">Reported by:</span>
-                                              <div className="flex items-center">
-                                                <User className="h-3 w-3 mr-1" />
+                                              <div className="flex items-center gap-2">
+                                                <Avatar className="h-5 w-5">
+                                                  <AvatarFallback>
+                                                    {selectedReport?.reportedBy.split(' ').map(n => n[0]).join('')}
+                                                  </AvatarFallback>
+                                                </Avatar>
                                                 <span className="font-medium">{selectedReport?.reportedBy}</span>
                                               </div>
                                             </div>
                                             <div className="flex justify-between">
-                                              <span className="text-muted-foreground">Date:</span>
+                                              <span className="text-muted-foreground">{t.reported}:</span>
                                               <span className="font-medium">{selectedReport?.reportedAt}</span>
                                             </div>
                                           </div>
                                         </CardContent>
                                       </Card>
                                       
-                                      <div className="flex flex-col gap-2">
+                                      <div className="flex flex-col gap-3">
                                         <Button 
                                           onClick={() => setIsAssigning(true)}
                                           className="w-full"
                                         >
-                                          Assign Report
+                                          {t.assignReport}
                                         </Button>
-                                        <div className="grid grid-cols-2 gap-2">
-                                          <Button variant="outline" className="w-full">
-                                            <CheckCircle2 className="h-4 w-4 mr-1" />
-                                            Approve
+                                        <div className="grid grid-cols-2 gap-3">
+                                          <Button variant="outline" className="w-full gap-1">
+                                            <CheckCircle2 className="h-4 w-4" />
+                                            {t.approve}
                                           </Button>
-                                          <Button variant="outline" className="w-full">
-                                            <XCircle className="h-4 w-4 mr-1" />
-                                            Reject
+                                          <Button variant="outline" className="w-full gap-1">
+                                            <XCircle className="h-4 w-4" />
+                                            {t.reject}
                                           </Button>
                                         </div>
-                                        <Button variant="outline" className="w-full">
-                                          <MessageSquare className="h-4 w-4 mr-1" />
-                                          Contact Resident
+                                        <Button variant="outline" className="w-full gap-1">
+                                          <MessageSquare className="h-4 w-4" />
+                                          {t.contactResident}
                                         </Button>
                                       </div>
                                     </div>
@@ -331,16 +427,18 @@ export const ReportQueue = ({ searchQuery, filters }: ReportQueueProps) => {
                                 </TabsContent>
                                 
                                 <TabsContent value="communication" className="mt-4">
-                                  <div className="border rounded-md p-4">
-                                    <h3 className="font-medium mb-3">Resident Communication</h3>
+                                  <div className="border rounded-lg p-5">
+                                    <h3 className="font-medium mb-4">{t.residentCommunication}</h3>
                                     <ScrollArea className="h-60">
                                       <div className="space-y-4">
                                         {selectedReport?.comments.length > 0 ? (
                                           selectedReport?.comments.map((comment: any, idx: number) => (
                                             <div key={idx} className="flex gap-3">
-                                              <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                                                <User className="h-4 w-4" />
-                                              </div>
+                                              <Avatar className="h-9 w-9">
+                                                <AvatarFallback>
+                                                  {comment.user.split(' ').map(n => n[0]).join('')}
+                                                </AvatarFallback>
+                                              </Avatar>
                                               <div className="flex-1">
                                                 <div className="flex justify-between">
                                                   <h4 className="font-medium">{comment.user}</h4>
@@ -351,7 +449,7 @@ export const ReportQueue = ({ searchQuery, filters }: ReportQueueProps) => {
                                             </div>
                                           ))
                                         ) : (
-                                          <p className="text-muted-foreground text-center py-10">No comments yet</p>
+                                          <p className="text-muted-foreground text-center py-10">{t.noComments}</p>
                                         )}
                                       </div>
                                     </ScrollArea>
@@ -359,23 +457,23 @@ export const ReportQueue = ({ searchQuery, filters }: ReportQueueProps) => {
                                 </TabsContent>
                                 
                                 <TabsContent value="history" className="mt-4">
-                                  <div className="border rounded-md p-4">
-                                    <h3 className="font-medium mb-3">Report History</h3>
+                                  <div className="border rounded-lg p-5">
+                                    <h3 className="font-medium mb-4">{t.reportHistory}</h3>
                                     <div className="relative pl-6 border-l-2 border-muted">
-                                      <div className="mb-4 relative">
-                                        <div className="absolute -left-[20px] top-0 h-4 w-4 rounded-full bg-blue-500"></div>
+                                      <div className="mb-6 relative">
+                                        <div className="absolute -left-[22px] top-0 h-4 w-4 rounded-full bg-blue-500 border-2 border-white dark:border-gray-900"></div>
                                         <div className="flex justify-between">
-                                          <h4 className="font-medium">Report Created</h4>
+                                          <h4 className="font-medium">{t.reportCreated}</h4>
                                           <span className="text-xs text-muted-foreground">{selectedReport?.reportedAt}</span>
                                         </div>
                                         <p className="text-sm mt-1">Resident {selectedReport?.reportedBy} submitted a new report</p>
                                       </div>
                                       
                                       {selectedReport?.comments.length > 0 && selectedReport?.comments.map((comment: any, idx: number) => (
-                                        <div key={idx} className="mb-4 relative">
-                                          <div className="absolute -left-[20px] top-0 h-4 w-4 rounded-full bg-green-500"></div>
+                                        <div key={idx} className="mb-6 relative">
+                                          <div className="absolute -left-[22px] top-0 h-4 w-4 rounded-full bg-green-500 border-2 border-white dark:border-gray-900"></div>
                                           <div className="flex justify-between">
-                                            <h4 className="font-medium">Comment Added</h4>
+                                            <h4 className="font-medium">{t.commentAdded}</h4>
                                             <span className="text-xs text-muted-foreground">{comment.time}</span>
                                           </div>
                                           <p className="text-sm mt-1">
@@ -389,8 +487,8 @@ export const ReportQueue = ({ searchQuery, filters }: ReportQueueProps) => {
                               </Tabs>
                               
                               <DialogFooter className="mt-6">
-                                <Button variant="outline">Close</Button>
-                                <Button onClick={() => setIsAssigning(true)}>Assign Report</Button>
+                                <Button variant="outline">{t.close}</Button>
+                                <Button onClick={() => setIsAssigning(true)}>{t.assignReport}</Button>
                               </DialogFooter>
                             </DialogContent>
                           </Dialog>
@@ -398,9 +496,10 @@ export const ReportQueue = ({ searchQuery, filters }: ReportQueueProps) => {
                           <Button 
                             variant="default" 
                             size="sm"
+                            className="gap-1"
                             onClick={() => handleAssign(report)}
                           >
-                            <ArrowUpRight className="h-3 w-3 mr-1" /> Assign
+                            <ArrowUpRight className="h-4 w-4" /> {t.assign}
                           </Button>
                         </div>
                       </TableCell>
@@ -408,8 +507,8 @@ export const ReportQueue = ({ searchQuery, filters }: ReportQueueProps) => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
-                      No reports found. Try adjusting your search or filters.
+                    <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                      {t.noReports}
                     </TableCell>
                   </TableRow>
                 )}
@@ -417,13 +516,13 @@ export const ReportQueue = ({ searchQuery, filters }: ReportQueueProps) => {
             </Table>
           </div>
           
-          <div className="flex justify-between items-center mt-4">
+          <div className="flex justify-between items-center mt-6">
             <p className="text-sm text-muted-foreground">
-              Showing {filteredReports.length} of {mockReports.length} reports
+              {t.showing} {filteredReports.length} {t.of} {mockReports.length} {t.reports}
             </p>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled>Previous</Button>
-              <Button variant="outline" size="sm">Next</Button>
+              <Button variant="outline" size="sm" disabled>{t.previous}</Button>
+              <Button variant="outline" size="sm">{t.next}</Button>
             </div>
           </div>
         </CardContent>
@@ -432,9 +531,9 @@ export const ReportQueue = ({ searchQuery, filters }: ReportQueueProps) => {
       <Dialog open={isAssigning} onOpenChange={setIsAssigning}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Assign Report: {selectedReport?.title}</DialogTitle>
+            <DialogTitle>{t.assignToTeam}: {selectedReport?.title}</DialogTitle>
             <DialogDescription>
-              Assign this report to a department or maintenance team
+              {t.assignDescription}
             </DialogDescription>
           </DialogHeader>
           
