@@ -9,22 +9,64 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { authService } from "@/services/auth";
 import { PasswordInput } from "@/components/ui/password-input";
+import { useTheme } from "@/components/ThemeProvider";
+import { useAuth } from "@/context/AuthContext";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme } = useTheme();
+  const { language } = useAuth();
   const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Translations
+  const translations = {
+    en: {
+      title: "Reset Password",
+      tokenLabel: "Reset Token",
+      tokenPlaceholder: "Enter the token from your email",
+      newPasswordLabel: "New Password",
+      newPasswordPlaceholder: "Enter new password",
+      confirmPasswordLabel: "Confirm Password",
+      confirmPasswordPlaceholder: "Confirm new password",
+      submitButton: "Reset Password",
+      submittingButton: "Resetting Password...",
+      backToLogin: "Back to Login",
+      passwordMismatch: "Passwords do not match",
+      passwordTooShort: "Password must be at least 6 characters long",
+      successMessage: "Password has been reset successfully. Please login with your new password.",
+      errorMessage: "Failed to reset password. Please try again."
+    },
+    am: {
+      title: "የይለፍ ቃል ዳግም ማስጀመር",
+      tokenLabel: "ዳግም ማስጀመሪያ ቶከን",
+      tokenPlaceholder: "ከኢሜልዎ የተላከውን ቶከን ያስገቡ",
+      newPasswordLabel: "አዲስ የይለፍ ቃል",
+      newPasswordPlaceholder: "አዲስ የይለፍ ቃል ያስገቡ",
+      confirmPasswordLabel: "የይለፍ ቃል አረጋግጥ",
+      confirmPasswordPlaceholder: "አዲሱን የይለፍ ቃል ያረጋግጡ",
+      submitButton: "የይለፍ ቃል ዳግም ማስጀመር",
+      submittingButton: "የይለፍ ቃል እየተሰራ ነው...",
+      backToLogin: "ወደ መግቢያ ተመለስ",
+      passwordMismatch: "የይለፍ ቃላቶች አይዛመዱም",
+      passwordTooShort: "የይለፍ ቃል ቢያንስ 6 ቁምፊዎች ሊኖሩት ይገባል",
+      successMessage: "የይለፍ ቃል በተሳካ ሁኔታ ተስተካክሏል። እባክዎ አዲሱን የይለፍ ቃል በመጠቀም ይግቡ።",
+      errorMessage: "የይለፍ ቃል ማስተካከል አልተሳካም። እባክዎ እንደገና �ስገቡ።"
+    }
+  };
+
+  const t = translations[language as keyof typeof translations] || translations.en;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
       toast({
-        title: "Error",
-        description: "Passwords do not match",
+        title: language === 'am' ? 'ስህተት' : 'Error',
+        description: t.passwordMismatch,
         variant: "destructive",
       });
       return;
@@ -32,8 +74,8 @@ const ResetPassword = () => {
 
     if (newPassword.length < 6) {
       toast({
-        title: "Error",
-        description: "Password must be at least 6 characters long",
+        title: language === 'am' ? 'ስህተት' : 'Error',
+        description: t.passwordTooShort,
         variant: "destructive",
       });
       return;
@@ -45,8 +87,8 @@ const ResetPassword = () => {
       await authService.resetPassword(token, newPassword, confirmPassword);
 
       toast({
-        title: "Success",
-        description: "Password has been reset successfully. Please login with your new password.",
+        title: language === 'am' ? 'ተሳክቷል' : 'Success',
+        description: t.successMessage,
       });
 
       navigate("/login");
@@ -54,9 +96,9 @@ const ResetPassword = () => {
       console.error('Reset password error:', error);
       const errorMessage = error.response?.data?.message || 
                          error.response?.data || 
-                         "Failed to reset password. Please try again.";
+                         t.errorMessage;
       toast({
-        title: "Error",
+        title: language === 'am' ? 'ስህተት' : 'Error',
         description: errorMessage,
         variant: "destructive",
       });
@@ -66,57 +108,65 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className={`flex flex-col min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <Header />
-      <PageContent className="flex items-center justify-center">
-        <div className="w-full max-w-md bg-[#2D2D2D] p-8 rounded-lg shadow-lg">
-          <h1 className="text-white text-3xl font-bold mb-6 text-center">Reset Password</h1>
+      <PageContent>
+        <div className={`w-full max-w-md p-8 rounded-2xl shadow-xl transition-all duration-300 ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} border ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+          <h1 className={`text-3xl font-bold mb-8 text-center ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
+            {t.title}
+          </h1>
           
           <form 
             onSubmit={handleSubmit} 
-            className="space-y-4" 
+            className="space-y-6" 
             autoComplete="off"
           >
-            <div className="space-y-2">
-              <Label htmlFor="reset-token" className="text-white">Reset Token</Label>
+            <div className="space-y-3">
+              <Label htmlFor="reset-token" className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                {t.tokenLabel}
+              </Label>
               <Input
                 id="reset-token"
                 name="reset-token"
                 type="text"
-                placeholder="Enter the token from your email"
+                placeholder={t.tokenPlaceholder}
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
-                className="bg-[#1A1A1A] text-white border-[#404040]"
+                className={`${theme === 'dark' ? 'bg-gray-700 text-white border-gray-600 focus:border-blue-500' : 'bg-white text-gray-900 border-gray-300 focus:border-blue-500'}`}
                 required
                 disabled={isSubmitting}
                 autoComplete="off"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="new-password" className="text-white">New Password</Label>
+            <div className="space-y-3">
+              <Label htmlFor="new-password" className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                {t.newPasswordLabel}
+              </Label>
               <PasswordInput
                 id="new-password"
                 name="new-password"
-                placeholder="Enter new password"
+                placeholder={t.newPasswordPlaceholder}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="bg-[#1A1A1A] text-white border-[#404040]"
+                className={`${theme === 'dark' ? 'bg-gray-700 text-white border-gray-600 focus:border-blue-500' : 'bg-white text-gray-900 border-gray-300 focus:border-blue-500'}`}
                 required
                 disabled={isSubmitting}
                 autoComplete="new-password"
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password" className="text-white">Confirm Password</Label>
+            <div className="space-y-3">
+              <Label htmlFor="confirm-password" className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                {t.confirmPasswordLabel}
+              </Label>
               <PasswordInput
                 id="confirm-password"
                 name="confirm-password"
-                placeholder="Confirm new password"
+                placeholder={t.confirmPasswordPlaceholder}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="bg-[#1A1A1A] text-white border-[#404040]"
+                className={`${theme === 'dark' ? 'bg-gray-700 text-white border-gray-600 focus:border-blue-500' : 'bg-white text-gray-900 border-gray-300 focus:border-blue-500'}`}
                 required
                 disabled={isSubmitting}
                 autoComplete="new-password"
@@ -125,20 +175,20 @@ const ResetPassword = () => {
             
             <Button 
               type="submit" 
-              className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white mt-4"
+              className={`w-full mt-6 ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white font-semibold py-3 rounded-lg transition-colors duration-300`}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Resetting Password..." : "Reset Password"}
+              {isSubmitting ? t.submittingButton : t.submitButton}
             </Button>
 
             <div className="text-center mt-4">
               <Button
                 type="button"
                 variant="link"
-                className="text-sm text-blue-500 hover:text-blue-700"
+                className={`text-sm ${theme === 'dark' ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'}`}
                 onClick={() => navigate("/login")}
               >
-                Back to Login
+                {t.backToLogin}
               </Button>
             </div>
           </form>
@@ -149,4 +199,4 @@ const ResetPassword = () => {
   );
 };
 
-export default ResetPassword; 
+export default ResetPassword;

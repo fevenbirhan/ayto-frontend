@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { fadeIn, staggerContainer } from "@/utils/motion";
 
 export const Hero = () => {
-  const { isAuthenticated, userRole, language } = useAuth();
+  const { isAuthenticated, userRole, language, toggleLanguage} = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -87,7 +87,7 @@ export const Hero = () => {
           <motion.button 
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/language")}
+            onClick={() => toggleLanguage()}
             className={`px-4 py-2 rounded-full font-medium transition-all ${
               isDark 
                 ? "bg-gray-700 hover:bg-gray-600 text-emerald-400 border border-gray-600" 
@@ -175,7 +175,7 @@ export const Hero = () => {
               {isAuthenticated && userRole && (
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button
-                    onClick={handleDashboardRedirect}
+                    onClick={()=>{handleDashboardRedirect()}}
                     className={`text-lg font-bold rounded-xl px-8 py-4 ${
                       isDark 
                         ? "bg-gray-800 hover:bg-gray-700 text-white border border-gray-600 hover:border-emerald-400" 

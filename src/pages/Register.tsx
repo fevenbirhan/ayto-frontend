@@ -8,6 +8,64 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { authService } from "@/services/auth";
 import { useToast } from "@/components/ui/use-toast";
 import { PasswordInput } from "@/components/ui/password-input";
+import { useTheme } from "@/components/ThemeProvider";
+import { useAuth } from "@/context/AuthContext";
+
+// Translation object
+const translations = {
+  en: {
+    titleGovernment: "Government Office Registration",
+    titleResident: "Resident Registration",
+    firstName: "First Name",
+    lastName: "Last Name",
+    officeName: "Office Name",
+    email: "Email",
+    phoneNumber: "Phone Number",
+    nationalId: "National ID",
+    location: "Location",
+    description: "Description",
+    password: "Password",
+    confirmPassword: "Confirm Password",
+    register: "Register",
+    registering: "Registering...",
+    haveAccount: "Already have an account?",
+    loginHere: "Login here",
+    verificationRequired: "Email Verification Required",
+    verificationDescription: "Please verify your email before registering",
+    verificationExpired: "Email verification has expired. Please verify your email again.",
+    passwordMismatch: "Passwords do not match",
+    successGovernment: "Registration successful! Please wait for approval.",
+    successResident: "Registration successful! You can now login.",
+    error: "Error",
+    registrationFailed: "Registration failed"
+  },
+  am: {
+    titleGovernment: "የመንግስት ቢሮ ምዝገባ",
+    titleResident: "የነዋሪ ምዝገባ",
+    firstName: "የመጀመሪያ ስም",
+    lastName: "የአባት ስም",
+    officeName: "የቢሮ ስም",
+    email: "ኢሜይል",
+    phoneNumber: "ስልክ ቁጥር",
+    nationalId: "ብሔራዊ መታወቂያ",
+    location: "አድራሻ",
+    description: "መግለጫ",
+    password: "የይለፍ ቃል",
+    confirmPassword: "የይለፍ ቃል አረጋግጥ",
+    register: "ይመዝገቡ",
+    registering: "ይመዝገባል...",
+    haveAccount: "አካውንት አለዎት?",
+    loginHere: "እዚህ ይግቡ",
+    verificationRequired: "የኢሜል ማረጋገጫ ያስፈልጋል",
+    verificationDescription: "እባክዎ ከምዝገባው በፊት ኢሜልዎን ያረጋግጡ",
+    verificationExpired: "የኢሜል ማረጋገጫው ጊዜው አልፏል። እባክዎ እንደገና ያረጋግጡ።",
+    passwordMismatch: "የይለፍ ቃላት አይዛመዱም",
+    successGovernment: "ምዝገባ ተሳክቷል! እባክዎ ለፀድቂያ ይጠብቁ።",
+    successResident: "ምዝገባ ተሳክቷል! አሁን መግባት ይችላሉ።",
+    error: "ስህተት",
+    registrationFailed: "ምዝገባ አልተሳካም"
+  }
+};
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -25,6 +83,11 @@ const Register = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { theme } = useTheme();
+  const { language } = useAuth();
+
+  // Get translations based on current language
+  const t = translations[language as keyof typeof translations] || translations.en;
 
   // Get user type and verified email from location state
   const userType = location.state?.userType || "resident";
@@ -34,8 +97,8 @@ const Register = () => {
   useEffect(() => {
     if (!verifiedEmail || !authService.isEmailVerified(verifiedEmail, userType)) {
       toast({
-        title: "Email Verification Required",
-        description: "Please verify your email before registering",
+        title: t.verificationRequired,
+        description: t.verificationDescription,
         variant: "destructive",
       });
       navigate("/verify-email");
@@ -47,7 +110,7 @@ const Register = () => {
       ...prev,
       email: verifiedEmail
     }));
-  }, [verifiedEmail, userType, navigate, toast]);
+  }, [verifiedEmail, userType, navigate, toast, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,8 +118,8 @@ const Register = () => {
     // Double check email verification
     if (!authService.isEmailVerified(formData.email, userType)) {
       toast({
-        title: "Error",
-        description: "Email verification has expired. Please verify your email again.",
+        title: t.error,
+        description: t.verificationExpired,
         variant: "destructive",
       });
       navigate("/verify-email");
@@ -65,8 +128,8 @@ const Register = () => {
 
     if (formData.password !== formData.confirmPassword) {
       toast({
-        title: "Error",
-        description: "Passwords do not match",
+        title: t.error,
+        description: t.passwordMismatch,
         variant: "destructive",
       });
       return;
@@ -101,15 +164,13 @@ const Register = () => {
       
       toast({
         title: "Success",
-        description: userType === 'government' 
-          ? "Registration successful! Please wait for approval."
-          : "Registration successful! You can now login.",
+        description: userType === 'government' ? t.successGovernment : t.successResident,
       });
       navigate("/login");
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || "Registration failed";
+      const errorMessage = error.response?.data?.message || t.registrationFailed;
       toast({
-        title: "Error",
+        title: t.error,
         description: errorMessage,
         variant: "destructive",
       });
@@ -123,97 +184,118 @@ const Register = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Theme-based styles
+  const lightModeStyles = {
+    background: "bg-gray-50",
+    cardBackground: "bg-white",
+    textColor: "text-gray-800",
+    inputBackground: "bg-gray-100",
+    borderColor: "border-gray-200",
+    buttonHover: "hover:bg-blue-600",
+  };
+
+  const darkModeStyles = {
+    background: "bg-[#1A1A1A]",
+    cardBackground: "bg-[#2D2D2D]",
+    textColor: "text-white",
+    inputBackground: "bg-[#1A1A1A]",
+    borderColor: "border-[#404040]",
+    buttonHover: "hover:bg-blue-700",
+  };
+
+  const currentStyles = theme === "dark" ? darkModeStyles : lightModeStyles;
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className={`flex flex-col min-h-screen ${currentStyles.background}`}>
       <Header />
-      <main className="flex-1 flex items-center justify-center bg-[#1A1A1A] py-16">
-        <div className="w-full max-w-md bg-[#2D2D2D] p-8 rounded-lg shadow-lg">
-          <h1 className="text-white text-3xl font-bold mb-6 text-center">
-            {userType === 'government' ? 'Government Office Registration' : 'Resident Registration'}
+      <main className={`flex-1 flex items-center justify-center py-16 ${currentStyles.background}`}>
+        <div className={`w-full max-w-md p-8 rounded-lg shadow-lg transition-all duration-300 ${currentStyles.cardBackground} ${currentStyles.borderColor} border`}>
+          <h1 className={`${currentStyles.textColor} text-3xl font-bold mb-6 text-center`}>
+            {userType === 'government' ? t.titleGovernment : t.titleResident}
           </h1>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             {userType === 'resident' ? (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-white">First Name</Label>
+                  <Label htmlFor="firstName" className={currentStyles.textColor}>{t.firstName}</Label>
                   <Input
                     id="firstName"
                     name="firstName"
-                    placeholder="First name"
+                    placeholder={t.firstName}
                     value={formData.firstName}
                     onChange={handleChange}
-                    className="bg-[#1A1A1A] text-white border-[#404040]"
+                    className={`${currentStyles.inputBackground} ${currentStyles.textColor} ${currentStyles.borderColor}`}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-white">Last Name</Label>
+                  <Label htmlFor="lastName" className={currentStyles.textColor}>{t.lastName}</Label>
                   <Input
                     id="lastName"
                     name="lastName"
-                    placeholder="Last name"
+                    placeholder={t.lastName}
                     value={formData.lastName}
                     onChange={handleChange}
-                    className="bg-[#1A1A1A] text-white border-[#404040]"
+                    className={`${currentStyles.inputBackground} ${currentStyles.textColor} ${currentStyles.borderColor}`}
                     required
                   />
                 </div>
               </div>
             ) : (
               <div className="space-y-2">
-                <Label htmlFor="firstName" className="text-white">Office Name</Label>
+                <Label htmlFor="firstName" className={currentStyles.textColor}>{t.officeName}</Label>
                 <Input
                   id="firstName"
                   name="firstName"
-                  placeholder="Office name"
+                  placeholder={t.officeName}
                   value={formData.firstName}
                   onChange={handleChange}
-                  className="bg-[#1A1A1A] text-white border-[#404040]"
+                  className={`${currentStyles.inputBackground} ${currentStyles.textColor} ${currentStyles.borderColor}`}
                   required
                 />
               </div>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white">Email</Label>
+              <Label htmlFor="email" className={currentStyles.textColor}>{t.email}</Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="Email address"
+                placeholder={t.email}
                 value={formData.email}
                 onChange={handleChange}
-                className="bg-[#1A1A1A] text-white border-[#404040]"
+                className={`${currentStyles.inputBackground} ${currentStyles.textColor} ${currentStyles.borderColor}`}
                 required
-                disabled // Email is pre-filled and cannot be changed
+                disabled
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phoneNumber" className="text-white">Phone Number</Label>
+              <Label htmlFor="phoneNumber" className={currentStyles.textColor}>{t.phoneNumber}</Label>
               <Input
                 id="phoneNumber"
                 name="phoneNumber"
                 type="tel"
-                placeholder="Phone number"
+                placeholder={t.phoneNumber}
                 value={formData.phoneNumber}
                 onChange={handleChange}
-                className="bg-[#1A1A1A] text-white border-[#404040]"
+                className={`${currentStyles.inputBackground} ${currentStyles.textColor} ${currentStyles.borderColor}`}
                 required
               />
             </div>
 
             {userType === 'resident' && (
               <div className="space-y-2">
-                <Label htmlFor="nationalId" className="text-white">National ID</Label>
+                <Label htmlFor="nationalId" className={currentStyles.textColor}>{t.nationalId}</Label>
                 <Input
                   id="nationalId"
                   name="nationalId"
-                  placeholder="National ID"
+                  placeholder={t.nationalId}
                   value={formData.nationalId}
                   onChange={handleChange}
-                  className="bg-[#1A1A1A] text-white border-[#404040]"
+                  className={`${currentStyles.inputBackground} ${currentStyles.textColor} ${currentStyles.borderColor}`}
                   required
                 />
               </div>
@@ -222,27 +304,27 @@ const Register = () => {
             {userType === 'government' && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="location" className="text-white">Location</Label>
+                  <Label htmlFor="location" className={currentStyles.textColor}>{t.location}</Label>
                   <Input
                     id="location"
                     name="location"
-                    placeholder="Office location"
+                    placeholder={t.location}
                     value={formData.location}
                     onChange={handleChange}
-                    className="bg-[#1A1A1A] text-white border-[#404040]"
+                    className={`${currentStyles.inputBackground} ${currentStyles.textColor} ${currentStyles.borderColor}`}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description" className="text-white">Description</Label>
+                  <Label htmlFor="description" className={currentStyles.textColor}>{t.description}</Label>
                   <textarea
                     id="description"
                     name="description"
-                    placeholder="Office description"
+                    placeholder={t.description}
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full min-h-[100px] rounded-md bg-[#1A1A1A] text-white border border-[#404040] p-2"
+                    className={`w-full min-h-[100px] rounded-md ${currentStyles.inputBackground} ${currentStyles.textColor} ${currentStyles.borderColor} border p-2`}
                     required
                   />
                 </div>
@@ -250,45 +332,45 @@ const Register = () => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">Password</Label>
+              <Label htmlFor="password" className={currentStyles.textColor}>{t.password}</Label>
               <PasswordInput
                 id="password"
                 name="password"
-                placeholder="Password"
+                placeholder={t.password}
                 value={formData.password}
                 onChange={handleChange}
-                className="bg-[#1A1A1A] text-white border-[#404040]"
+                className={`${currentStyles.inputBackground} ${currentStyles.textColor} ${currentStyles.borderColor}`}
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-white">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className={currentStyles.textColor}>{t.confirmPassword}</Label>
               <PasswordInput
                 id="confirmPassword"
                 name="confirmPassword"
-                placeholder="Confirm password"
+                placeholder={t.confirmPassword}
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="bg-[#1A1A1A] text-white border-[#404040]"
+                className={`${currentStyles.inputBackground} ${currentStyles.textColor} ${currentStyles.borderColor}`}
                 required
               />
             </div>
 
             <Button 
               type="submit" 
-              className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white mt-4"
+              className={`w-full bg-blue-500 ${currentStyles.buttonHover} text-white mt-4 transition-colors duration-300`}
               disabled={isLoading}
             >
-              {isLoading ? "Registering..." : "Register"}
+              {isLoading ? t.registering : t.register}
             </Button>
           </form>
 
           <div className="mt-4 text-center">
-            <p className="text-white">
-              Already have an account?{" "}
-              <Link to="/login" className="text-[#3B82F6] hover:underline font-medium">
-                Login here
+            <p className={currentStyles.textColor}>
+              {t.haveAccount}{" "}
+              <Link to="/login" className="text-blue-500 hover:underline font-medium">
+                {t.loginHere}
               </Link>
             </p>
           </div>
@@ -300,4 +382,3 @@ const Register = () => {
 };
 
 export default Register;
-    
