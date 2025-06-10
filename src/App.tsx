@@ -15,6 +15,7 @@ import GovernmentDashboard from "./pages/GovernmentDashboard";
 import NotFound from "./pages/NotFound";
 import ResetPassword from "./pages/ResetPassword";
 import { ThemeProvider } from "./components/ThemeProvider";
+import UtilityProviderDashboard from "./components/utility-provider/UtilityProviderDashboard";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -43,6 +44,9 @@ const App = () => (
                 </Route>
                 <Route element={<ProtectedRoute allowedRoles={["ADMIN", "GOVERNMENT_OFFICE"]} />}>
                   <Route path="/government-dashboard" element={<GovernmentDashboard />} />
+                </Route>
+                <Route element={<ProtectedRoute allowedRoles={["UTILITY_PROVIDER"]} />}>
+                  <Route path="/utility-provider-dashboard" element={<UtilityProviderDashboard />} />
                 </Route>
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

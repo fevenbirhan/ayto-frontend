@@ -4,10 +4,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { AuthContext } from "@/context/AuthContext";
 import { LocationPicker } from "@/components/maps/LocationPicker";
 import { utilityProviderService } from "@/services/utility-provider";
+
+export const PROVIDER_TYPES = [
+  "Power Authority",
+  "Water and Sewerage",
+  "Ethio-Tele",
+  "Road Transportation"
+] as const;
+
+export type ProviderType = typeof PROVIDER_TYPES[number];
 
 const INITIAL_FORM_STATE = {
   name: "",
@@ -15,7 +31,7 @@ const INITIAL_FORM_STATE = {
   phoneNumber: "",
   password: "",
   description: "",
-  providerType: "TEMP_TYPE", // Temporary value until backend fix
+  providerType: "",
 };
 
 export const CreateUtilityProvider = () => {
@@ -31,6 +47,13 @@ export const CreateUtilityProvider = () => {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  const handleProviderTypeChange = (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      providerType: value
     }));
   };
 
@@ -50,6 +73,15 @@ export const CreateUtilityProvider = () => {
       toast({
         title: "Error",
         description: "Please select a location on the map",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.providerType) {
+      toast({
+        title: "Error",
+        description: "Please select a provider type",
         variant: "destructive",
       });
       return;
@@ -150,6 +182,26 @@ export const CreateUtilityProvider = () => {
             className="bg-[#2D2D2D] border-[#404040]"
             autoComplete="new-password"
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="providerType">Provider Type</Label>
+          <Select value={formData.providerType} onValueChange={handleProviderTypeChange}>
+            <SelectTrigger id="providerType" className="bg-[#2D2D2D] border-[#404040]">
+              <SelectValue placeholder="Select provider type" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#2D2D2D] border-[#404040]">
+              {PROVIDER_TYPES.map((type) => (
+                <SelectItem 
+                  key={type} 
+                  value={type}
+                  className="text-white hover:bg-[#404040]"
+                >
+                  {type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

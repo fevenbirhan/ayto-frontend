@@ -5,12 +5,12 @@ import { Facebook, Instagram, Twitter, Mail, Phone } from "lucide-react";
 interface FooterProps {
   text: string;
   darkMode: boolean;
-  language: 'en' | 'am';
+  language?: 'en' | 'am';
 }
 
-export const Footer = ({ text, darkMode}: FooterProps) => {
+export const Footer = ({ text, darkMode, language = 'en' }: FooterProps) => {
   const { theme } = useTheme();
-  const { language } = useAuth();
+  const { language: authLanguage } = useAuth();
 
   // Translations
   const translations = {

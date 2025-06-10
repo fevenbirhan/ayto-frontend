@@ -61,6 +61,9 @@ const Login = () => {
           case 'RESIDENT':
             navigate("/resident-dashboard?tab=community");
             break;
+          case 'UTILITY_PROVIDER':
+            navigate("/utility-provider-dashboard");
+            break;
           default:
             console.warn('Unknown user role:', userRole);
             navigate("/");

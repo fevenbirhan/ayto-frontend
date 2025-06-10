@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { authService } from "@/services/auth";
 
 // ----------------- Auth Context -----------------
-interface AuthContextType {
+export interface AuthContextType {
     token: string | null;
     userRole: string | null;
     userName: string | null;
