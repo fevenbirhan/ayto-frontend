@@ -51,9 +51,9 @@ export const CreateMaintenanceTeam = ({ onClose }: CreateMaintenanceTeamProps) =
 
   useEffect(() => {
     const fetchEmployees = async () => {
-      if (!token) return;
+      if (!token || !userId) return;
       try {
-        const fetchedEmployees = await employeeService.getAllEmployees(token);
+        const fetchedEmployees = await employeeService.getEmployeesByProvider(userId, token);
         setEmployees(fetchedEmployees);
       } catch (error: any) {
         console.error('Error fetching employees:', error);
@@ -66,7 +66,7 @@ export const CreateMaintenanceTeam = ({ onClose }: CreateMaintenanceTeamProps) =
     };
 
     fetchEmployees();
-  }, [token, toast]);
+  }, [token, userId, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

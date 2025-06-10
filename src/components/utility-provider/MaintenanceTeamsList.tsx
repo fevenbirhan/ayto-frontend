@@ -21,7 +21,7 @@ const MaintenanceTeamsList = ({ refreshTrigger = 0 }: MaintenanceTeamsListProps)
       try {
         setIsLoading(true);
         if (token && userId) {
-          const teamsData = await maintenanceTeamService.getAllMaintenanceTeams(token);
+          const teamsData = await maintenanceTeamService.getMaintenanceTeams(userId, token);
           // Ensure employees array is initialized for each team
           const teamsWithEmployees = teamsData.map(team => ({
             ...team,
@@ -44,7 +44,7 @@ const MaintenanceTeamsList = ({ refreshTrigger = 0 }: MaintenanceTeamsListProps)
     if (token && userId) {
       fetchTeams();
     }
-  }, [token, userId, refreshTrigger]);
+  }, [token, userId, refreshTrigger, toast]);
 
   if (isLoading) {
     return (
