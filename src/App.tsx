@@ -19,6 +19,7 @@ import UtilityProviderDashboard from "./components/utility-provider/UtilityProvi
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AnalyticsDashboard from "./pages/AnalyticsDashboard";
+import MaintenanceTeamDashboard from "./components/maintenance-team/MaintenanceTeamDashboard";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,9 @@ const App = () => (
                 </Route>
                 <Route element={<ProtectedRoute allowedRoles={["UTILITY_PROVIDER"]} />}>
                   <Route path="/utility-provider-dashboard" element={<UtilityProviderDashboard />} />
+                </Route>
+                <Route element={<ProtectedRoute allowedRoles={["MAINTENANCE_TEAM"]} />}>
+                  <Route path="/maintenance-team-dashboard" element={<MaintenanceTeamDashboard />} />
                 </Route>
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

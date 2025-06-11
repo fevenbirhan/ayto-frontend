@@ -9,7 +9,7 @@ export interface Report {
   location: string; // Stored as "latitude,longitude" in backend
   locationName: string; // Human-readable location name
   imageUrls: string[];
-  status: 'PENDING' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
+  status: 'PENDING' | 'IN_PROGRESS' | 'HELP_REQUESTED' | 'RESOLVED' | 'REJECTED';
   residentName: string;
   createdAt: string;
   updatedAt: string;
@@ -267,14 +267,50 @@ class ReportService {
   async assignMaintenanceTeam(reportId: string, teamId: string, token: string): Promise<Report> {
     try {
       const response = await axios.post(
-        `${this.baseUrl}/${reportId}/assign-team`,
-        { teamId },
+        `http://localhost:8080/ayto/utility-provider/reports/${reportId}/assign/${teamId}`,
+        {},
         { headers: this.getHeaders(token) }
       );
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 403) {
         throw new Error('You do not have permission to assign maintenance teams.');
+      }
+      throw error;
+    }
+  }
+
+  async getAssignedReports(maintenanceTeamId: string, token: string): Promise<Report[]> {
+    try {
+      // Since the team ID should be in the JWT token, we don't need to pass it in the URL
+      const response = await axios.get(
+        `http://localhost:8080/api/maintenance-teams/assigned-reports`,
+        { headers: this.getHeaders(token) }
+      );
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to view assigned reports.');
+      }
+      throw error;
+    }
+  }
+
+  async updateReportStatusByMaintenanceTeam(
+    reportId: string,
+    status: 'IN_PROGRESS' | 'HELP_REQUESTED' | 'RESOLVED' | 'REJECTED',
+    token: string
+  ): Promise<Report> {
+    try {
+      const response = await axios.put(
+        `http://localhost:8080/api/maintenance-teams/reports/${reportId}/status`,
+        { status },
+        { headers: this.getHeaders(token) }
+      );
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to update report status.');
       }
       throw error;
     }
