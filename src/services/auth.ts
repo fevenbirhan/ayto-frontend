@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Role, AccountStatus } from './employee';
 
 const API_URL = 'http://localhost:8080/api/auth';
 const AYTO_URL = 'http://localhost:8080/ayto';
@@ -8,13 +9,14 @@ interface LoginData {
     password: string;
 }
 
-interface AuthResponse {
+export interface AuthResponse {
     token: string;
     userId: string;
     email: string;
     name: string;
-    role: 'ADMIN' | 'GOVERNMENT_OFFICE' | 'RESIDENT' | 'UTILITY_PROVIDER' | 'EMPLOYEE';
-    accountStatus: 'ACTIVE' | 'INACTIVE' | 'PENDING';
+    role: Role;
+    accountStatus: AccountStatus;
+    maintenanceTeamId?: string;
 }
 
 interface GovernmentRegisterData {

@@ -57,7 +57,7 @@ const Login = () => {
         registerLink: "እዚህ ይመዝገቡ",
         forgotPassword: "የይለፍ ቃል ረሳኽው?",
         toastSuccessTitle: "ተሳክቷል",
-        toastSuccessDescription: "በተሳካ �ንገላ ገብተዋል!",
+        toastSuccessDescription: "በተሳካ ንገላ ገብተዋል!",
         toastErrorTitle: "ስህተት",
         invalidCredentials: "ልክ ያልሆነ ኢሜይል ወይም የይለፍ ቃል"
       }
@@ -106,6 +106,9 @@ const Login = () => {
             break;
           case 'UTILITY_PROVIDER':
             navigate("/utility-provider-dashboard");
+            break;
+          case 'MAINTENANCE_TEAM':
+            navigate("/maintenance-team-dashboard");
             break;
           default:
             navigate("/");
