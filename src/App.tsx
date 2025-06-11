@@ -18,6 +18,7 @@ import { ThemeProvider } from "./components/ThemeProvider";
 import UtilityProviderDashboard from "./components/utility-provider/UtilityProviderDashboard";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 import MaintenanceTeamDashboard from "./components/maintenance-team/MaintenanceTeamDashboard";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
                 </Route>
                 <Route element={<ProtectedRoute allowedRoles={["ADMIN", "GOVERNMENT_OFFICE"]} />}>
                   <Route path="/government-dashboard" element={<GovernmentDashboard />} />
+                  <Route path="/analytics" element={<AnalyticsDashboard />} />
                 </Route>
                 <Route element={<ProtectedRoute allowedRoles={["UTILITY_PROVIDER"]} />}>
                   <Route path="/utility-provider-dashboard" element={<UtilityProviderDashboard />} />
