@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/components/ThemeProvider";
 import './AdminDashboard.css';
 
 interface Government {
@@ -13,6 +15,10 @@ interface Government {
 }
 
 const AdminDashboard: React.FC = () => {
+  // Context hooks
+  const { theme } = useTheme()
+  const { language } = useAuth();
+  
   // Authentication state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminUsername, setAdminUsername] = useState('');
@@ -35,40 +41,66 @@ const AdminDashboard: React.FC = () => {
   const [govEmail, setGovEmail] = useState('');
   const [govJurisdiction, setGovJurisdiction] = useState('');
 
-  // Mock authentication
+  // Translations
+  const translations = {
+    loginTitle: language === 'am' ? 'የስርዓት አስተዳዳሪ መግቢያ' : 'System Administrator Login',
+    username: language === 'am' ? 'የተጠቃሚ ስም' : 'Username',
+    password: language === 'am' ? 'የይለፍ ቃል' : 'Password',
+    login: language === 'am' ? 'ግባ' : 'Login',
+    invalidCredentials: language === 'am' ? 'ልክ ያልሆኑ የይለፍ መረጃዎች' : 'Invalid credentials',
+    dashboardTitle: language === 'am' ? 'የመንግስት አስተዳደር ስርዓት' : 'Government Management System',
+    // Add more translations as needed
+  };
+
+  const mockGovernmentsData: Government[] = language === 'am' 
+  ? [
+      {
+        id: '1',
+        name: 'የአሜሪካ ፌዴራላዊ መንግስት',
+        type: 'national',
+        adminUsername: 'usadmin',
+        status: 'active',
+        createdAt: new Date('2020-01-15'),
+        email: 'admin@usa.gov',
+        jurisdiction: 'አሜሪካ'
+      }
+    ]
+  : [
+      {
+        id: '1',
+        name: 'United States Federal Government',
+        type: 'national',
+        adminUsername: 'usadmin',
+        status: 'active',
+        createdAt: new Date('2020-01-15'),
+        email: 'admin@usa.gov',
+        jurisdiction: 'United States'
+      }
+    ];
+
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (adminUsername === 'sysadmin' && adminPassword === 'securepassword123') {
       setIsAuthenticated(true);
       setLoginError('');
-      // In a real app, you would set a token or session here
     } else {
-      setLoginError('Invalid credentials');
+      setLoginError(translations.invalidCredentials);
     }
   };
 
-  // Mock data loading
   useEffect(() => {
     if (isAuthenticated) {
-      // In a real app, this would be an API call
-      const mockGovernments: Government[] = [
-        {
-          id: '1',
-          name: 'United States Federal Government',
-          type: 'national',
-          adminUsername: 'usadmin',
-          status: 'active',
-          createdAt: new Date('2020-01-15'),
-          email: 'admin@usa.gov',
-          jurisdiction: 'United States'
-        },
-        // Add more mock data as needed
-      ];
-      setGovernments(mockGovernments);
+      setGovernments(
+        mockGovernmentsData.map((gov) => ({
+          ...gov,
+          type: gov.type as "national" | "state" | "local" | "agency", // ✅ type cast
+        }))
+      );
+      
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, language]);
 
-  // Filter and search logic
   useEffect(() => {
     let result = governments;
     
@@ -84,10 +116,9 @@ const AdminDashboard: React.FC = () => {
     }
     
     setFilteredGovernments(result);
-    setCurrentPage(1); // Reset to first page when filters change
+    setCurrentPage(1);
   }, [governments, filterStatus, searchTerm]);
 
-  // Pagination logic
   const indexOfLastGov = currentPage * governmentsPerPage;
   const indexOfFirstGov = indexOfLastGov - governmentsPerPage;
   const currentGovernments = filteredGovernments.slice(indexOfFirstGov, indexOfLastGov);
@@ -108,7 +139,6 @@ const AdminDashboard: React.FC = () => {
     
     setGovernments([...governments, newGovernment]);
     
-    // Reset form
     setGovName('');
     setGovType('national');
     setGovUsername('');
@@ -127,80 +157,98 @@ const AdminDashboard: React.FC = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="login-container">
-        <h2>System Administrator Login</h2>
-        <form onSubmit={handleLogin}>
-          <div className="form-group">
-            <label htmlFor="adminUsername">Username:</label>
-            <input 
-              type="text" 
-              id="adminUsername" 
-              value={adminUsername}
-              onChange={(e) => setAdminUsername(e.target.value)}
-              required 
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="adminPassword">Password:</label>
-            <input 
-              type="password" 
-              id="adminPassword" 
-              value={adminPassword}
-              onChange={(e) => setAdminPassword(e.target.value)}
-              required 
-            />
-          </div>
-          {loginError && <div className="error-message">{loginError}</div>}
-          <button type="submit">Login</button>
-        </form>
+      <div className={`login-container ${theme}`}>
+        <div className="login-card">
+          <h2>{translations.loginTitle}</h2>
+          <form onSubmit={handleLogin}>
+            <div className="form-group">
+              <label htmlFor="adminUsername">{translations.username}</label>
+              <input 
+                type="text" 
+                id="adminUsername" 
+                value={adminUsername}
+                onChange={(e) => setAdminUsername(e.target.value)}
+                required 
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="adminPassword">{translations.password}</label>
+              <input 
+                type="password" 
+                id="adminPassword" 
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                required 
+              />
+            </div>
+            {loginError && <div className="error-message">{loginError}</div>}
+            <button type="submit" className="btn-primary">{translations.login}</button>
+          </form>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="dashboard">
-      <div className="sidebar">
+    <div className={`dashboard ${theme}`}>
+      <div className={`sidebar ${theme}`}>
         <div className="admin-profile">
-          <img src="admin-avatar.png" alt="Admin" />
+          <div className="avatar">
+            <span className="initials">SA</span>
+          </div>
           <span>System Admin</span>
         </div>
         <nav>
           <ul>
-            <li className="active"><a href="#dashboard">Dashboard</a></li>
-            <li><a href="#create-gov">Create Government</a></li>
-            <li><a href="#manage-gov">Manage Governments</a></li>
-            <li><a href="#audit-logs">Audit Logs</a></li>
-            <li><a href="#admin-settings">Admin Settings</a></li>
-            <li><a href="#logout">Logout</a></li>
+            <li className="active">
+              <i className="icon-dashboard"></i>
+              <span>{language === 'am' ? 'ዳሽቦርድ' : 'Dashboard'}</span>
+            </li>
+            <li>
+              <i className="icon-create"></i>
+              <span>{language === 'am' ? 'መንግስት ፍጠር' : 'Create Government'}</span>
+            </li>
+            <li>
+              <i className="icon-manage"></i>
+              <span>{language === 'am' ? 'መንግስታትን አስተዳድር' : 'Manage Governments'}</span>
+            </li>
+            <li>
+              <i className="icon-audit"></i>
+              <span>{language === 'am' ? 'ኦዲት ምዝገባዎች' : 'Audit Logs'}</span>
+            </li>
+            <li>
+              <i className="icon-settings"></i>
+              <span>{language === 'am' ? 'ቅንብሮች' : 'Settings'}</span>
+            </li>
           </ul>
         </nav>
       </div>
 
       <div className="main-content">
         <div className="header">
-          <h1>Government Management System</h1>
+          <h1>{translations.dashboardTitle}</h1>
           <div className="stats">
-            <div className="stat-card">
-              <h3>Total Governments</h3>
+            <div className={`stat-card ${theme}`}>
+              <h3>{language === 'am' ? 'ጠቅላላ መንግስታት' : 'Total Governments'}</h3>
               <p>{governments.length}</p>
             </div>
-            <div className="stat-card">
-              <h3>Active Governments</h3>
+            <div className={`stat-card ${theme}`}>
+              <h3>{language === 'am' ? 'ንቁ መንግስታት' : 'Active Governments'}</h3>
               <p>{governments.filter(g => g.status === 'active').length}</p>
             </div>
-            <div className="stat-card">
-              <h3>Suspended</h3>
+            <div className={`stat-card ${theme}`}>
+              <h3>{language === 'am' ? 'የተቆጠቁ' : 'Suspended'}</h3>
               <p>{governments.filter(g => g.status === 'suspended').length}</p>
             </div>
           </div>
         </div>
 
-        <section id="create-gov-section" className="card">
-          <h2>Create New Government Entity</h2>
+        <section id="create-gov-section" className={`card ${theme}`}>
+          <h2>{language === 'am' ? 'አዲስ የመንግስት አካል ፍጠር' : 'Create New Government Entity'}</h2>
           <form onSubmit={handleCreateGovernment}>
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="govName">Government Name</label>
+                <label htmlFor="govName">{language === 'am' ? 'የመንግስት ስም' : 'Government Name'}</label>
                 <input 
                   type="text" 
                   id="govName" 
@@ -210,24 +258,24 @@ const AdminDashboard: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="govType">Government Type</label>
+                <label htmlFor="govType">{language === 'am' ? 'የመንግስት አይነት' : 'Government Type'}</label>
                 <select 
                   id="govType" 
                   value={govType}
                   onChange={(e) => setGovType(e.target.value as any)}
                   required
                 >
-                  <option value="national">National</option>
-                  <option value="state">State/Province</option>
-                  <option value="local">Local/Municipal</option>
-                  <option value="agency">Government Agency</option>
+                  <option value="national">{language === 'am' ? 'ብሔራዊ' : 'National'}</option>
+                  <option value="state">{language === 'am' ? 'ክልል' : 'State/Province'}</option>
+                  <option value="local">{language === 'am' ? 'አካባቢያዊ' : 'Local/Municipal'}</option>
+                  <option value="agency">{language === 'am' ? 'የመንግስት ኤጀንሲ' : 'Government Agency'}</option>
                 </select>
               </div>
             </div>
             
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="govUsername">Admin Username</label>
+                <label htmlFor="govUsername">{language === 'am' ? 'የአስተዳዳሪ ተጠቃሚ ስም' : 'Admin Username'}</label>
                 <input 
                   type="text" 
                   id="govUsername" 
@@ -237,7 +285,7 @@ const AdminDashboard: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="govPassword">Admin Password</label>
+                <label htmlFor="govPassword">{language === 'am' ? 'የአስተዳዳሪ የይለፍ ቃል' : 'Admin Password'}</label>
                 <input 
                   type="password" 
                   id="govPassword" 
@@ -249,7 +297,7 @@ const AdminDashboard: React.FC = () => {
             </div>
             
             <div className="form-group">
-              <label htmlFor="govEmail">Contact Email</label>
+              <label htmlFor="govEmail">{language === 'am' ? 'የእውቂያ ኢሜይል' : 'Contact Email'}</label>
               <input 
                 type="email" 
                 id="govEmail" 
@@ -260,7 +308,7 @@ const AdminDashboard: React.FC = () => {
             </div>
             
             <div className="form-group">
-              <label htmlFor="govJurisdiction">Jurisdiction</label>
+              <label htmlFor="govJurisdiction">{language === 'am' ? 'የስልጣን ክልል' : 'Jurisdiction'}</label>
               <input 
                 type="text" 
                 id="govJurisdiction" 
@@ -270,85 +318,107 @@ const AdminDashboard: React.FC = () => {
             </div>
             
             <div className="form-actions">
-              <button type="submit" className="btn-primary">Create Government</button>
+              <button type="submit" className="btn-primary">
+                {language === 'am' ? 'መንግስት ፍጠር' : 'Create Government'}
+              </button>
             </div>
           </form>
         </section>
 
-        <section id="manage-gov-section" className="card">
-          <h2>Manage Government Entities</h2>
-          <div className="table-controls">
-            <input 
-              type="text" 
-              id="govSearch" 
-              placeholder="Search governments..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <select 
-              id="govFilter" 
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as any)}
-            >
-              <option value="all">All Governments</option>
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-            </select>
+        <section id="manage-gov-section" className={`card ${theme}`}>
+          <div className="section-header">
+            <h2>{language === 'am' ? 'የመንግስት አካላትን አስተዳድር' : 'Manage Government Entities'}</h2>
+            <div className="table-controls">
+              <div className="search-input">
+                <i className="icon-search"></i>
+                <input 
+                  type="text" 
+                  id="govSearch" 
+                  placeholder={language === 'am' ? 'መንግስታትን ፈልግ...' : 'Search governments...'}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <select 
+                id="govFilter" 
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value as any)}
+                className={`select-${theme}`}
+              >
+                <option value="all">{language === 'am' ? 'ሁሉም መንግስታት' : 'All Governments'}</option>
+                <option value="active">{language === 'am' ? 'ንቁ' : 'Active'}</option>
+                <option value="suspended">{language === 'am' ? 'የተቆጠቁ' : 'Suspended'}</option>
+              </select>
+            </div>
           </div>
           
-          <table id="governmentsTable">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Admin Username</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentGovernments.map(gov => (
-                <tr key={gov.id}>
-                  <td>{gov.id}</td>
-                  <td>{gov.name}</td>
-                  <td>{gov.type}</td>
-                  <td>{gov.adminUsername}</td>
-                  <td>
-                    <span className={`status-badge ${gov.status}`}>
-                      {gov.status}
-                    </span>
-                  </td>
-                  <td>{gov.createdAt.toLocaleDateString()}</td>
-                  <td>
-                    <button 
-                      onClick={() => toggleGovernmentStatus(gov.id)}
-                      className={`btn-sm ${gov.status === 'active' ? 'btn-warning' : 'btn-success'}`}
-                    >
-                      {gov.status === 'active' ? 'Suspend' : 'Activate'}
-                    </button>
-                  </td>
+          <div className="table-container">
+            <table id="governmentsTable">
+              <thead>
+                <tr>
+                  <th>{language === 'am' ? 'መለያ' : 'ID'}</th>
+                  <th>{language === 'am' ? 'ስም' : 'Name'}</th>
+                  <th>{language === 'am' ? 'ዓይነት' : 'Type'}</th>
+                  <th>{language === 'am' ? 'የአስተዳዳሪ ተጠቃሚ ስም' : 'Admin Username'}</th>
+                  <th>{language === 'am' ? 'ሁኔታ' : 'Status'}</th>
+                  <th>{language === 'am' ? 'የተፈጠረ' : 'Created'}</th>
+                  <th>{language === 'am' ? 'ድርጊቶች' : 'Actions'}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {currentGovernments.map(gov => (
+                  <tr key={gov.id}>
+                    <td>{gov.id}</td>
+                    <td>{gov.name}</td>
+                    <td>{language === 'am' ? 
+                      gov.type === 'national' ? 'ብሔራዊ' :
+                      gov.type === 'state' ? 'ክልል' :
+                      gov.type === 'local' ? 'አካባቢያዊ' : 'ኤጀንሲ'
+                      : gov.type}</td>
+                    <td>{gov.adminUsername}</td>
+                    <td>
+                      <span className={`status-badge ${gov.status}`}>
+                        {language === 'am' ? 
+                          gov.status === 'active' ? 'ንቁ' : 'የተቆጠቀ'
+                          : gov.status}
+                      </span>
+                    </td>
+                    <td>{gov.createdAt.toLocaleDateString()}</td>
+                    <td>
+                      <button 
+                        onClick={() => toggleGovernmentStatus(gov.id)}
+                        className={`btn-sm ${gov.status === 'active' ? 'btn-warning' : 'btn-success'}`}
+                      >
+                        {language === 'am' ? 
+                          gov.status === 'active' ? 'አቆም' : 'አግባ'
+                          : gov.status === 'active' ? 'Suspend' : 'Activate'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           
           <div className="pagination">
-            <button 
-              id="prevPage" 
+            <button
               disabled={currentPage === 1}
-              onClick={() => setCurrentPage(prev => prev - 1)}
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              className="btn-secondary"
             >
-              Previous
+              {language === 'am' ? 'ወደ ኋላ' : 'Previous'}
             </button>
-            <span id="pageInfo">Page {currentPage} of {totalPages}</span>
-            <button 
-              id="nextPage" 
+            <span className="page-info">
+              {language === 'am'
+                ? `ገፅ ${currentPage} / ${totalPages}`
+                : `Page ${currentPage} of ${totalPages}`}
+            </span>
+            <button
               disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(prev => prev + 1)}
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              className="btn-secondary"
             >
-              Next
+              {language === 'am' ? 'ወደ ፊት' : 'Next'}
             </button>
           </div>
         </section>

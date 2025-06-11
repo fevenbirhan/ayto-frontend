@@ -94,6 +94,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         verifyToken();
     }, [token]);
+    // Navigate to admin dashboard if user is admin
+useEffect(() => {
+    if (token && userRole === "admin") {
+      navigate("/adminDashboard");
+    }
+  }, [token, userRole, navigate]);
+  
 
     // ----------------- Auth Functions -----------------
     const login = async (email: string, password: string) => {
