@@ -31,6 +31,15 @@ export interface CreateMaintenanceTeamData {
     employeeIds: string[];
 }
 
+export interface HelpRequestData {
+    reportId: string;
+    maintenanceTeamId: string;
+    requiredSkills: string;
+    workLocation: string;
+    requiredCapacity: number;
+    additionalNotes: string;
+}
+
 class MaintenanceTeamService {
     private baseUrl = 'http://localhost:8080/api/maintenance-teams';
 
@@ -141,6 +150,45 @@ class MaintenanceTeamService {
             if (error.response?.status === 403) {
                 throw new Error('You do not have permission to assign teams to reports.');
             }
+            throw error;
+        }
+    }
+
+    async requestHelp(data: HelpRequestData, token: string): Promise<void> {
+        try {
+            await axios.post(
+                `${this.baseUrl}/reports/request-help`,
+                data,
+                { headers: this.getHeaders(token) }
+            );
+        } catch (error: any) {
+            console.error('Error requesting help:', error);
+            throw error;
+        }
+    }
+
+    async rejectHelp(reportId: string, token: string): Promise<void> {
+        try {
+            await axios.post(
+                `${this.baseUrl}/reports/${reportId}/reject-help`,
+                {},
+                { headers: this.getHeaders(token) }
+            );
+        } catch (error: any) {
+            console.error('Error rejecting help:', error);
+            throw error;
+        }
+    }
+
+    async updateReportStatus(reportId: string, status: string, token: string): Promise<void> {
+        try {
+            await axios.put(
+                `${this.baseUrl}/reports/${reportId}/status`,
+                { status },
+                { headers: this.getHeaders(token) }
+            );
+        } catch (error: any) {
+            console.error('Error updating report status:', error);
             throw error;
         }
     }
