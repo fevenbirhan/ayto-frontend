@@ -31,6 +31,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+interface HelpRequestFormData {
+  requiredSkills: string;
+  workLocation: string;
+  requiredCapacity: number;
+  additionalNotes: string;
+}
+
 const MaintenanceTeamDashboard = () => {
   const { token, userId, logout } = useContext(AuthContext);
   const { toast } = useToast();
@@ -40,6 +47,13 @@ const MaintenanceTeamDashboard = () => {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [teamInfo, setTeamInfo] = useState<MaintenanceTeam | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isHelpRequestDialogOpen, setIsHelpRequestDialogOpen] = useState(false);
+  const [helpRequestData, setHelpRequestData] = useState<HelpRequestFormData>({
+    requiredSkills: "",
+    workLocation: "",
+    requiredCapacity: 0,
+    additionalNotes: ""
+  });
 
   useEffect(() => {
     const fetchTeamInfo = async () => {
@@ -115,6 +129,60 @@ const MaintenanceTeamDashboard = () => {
       });
     } finally {
       setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleRequestHelp = async (reportId: string) => {
+    if (!token || !userId) return;
+
+    try {
+      await maintenanceTeamService.requestHelp({
+        reportId,
+        maintenanceTeamId: userId,
+        ...helpRequestData
+      }, token);
+
+      toast({
+        title: "Success",
+        description: "Help request sent successfully",
+      });
+      setIsHelpRequestDialogOpen(false);
+      
+      // Refresh the reports list
+      const reports = await reportService.getAssignedReports(userId, token);
+      setAssignedReports(reports);
+    } catch (error: any) {
+      console.error('Error requesting help:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to request help",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleRejectReport = async (reportId: string) => {
+    if (!token || !userId) return;
+
+    try {
+      await maintenanceTeamService.rejectHelp(reportId, token);
+      await maintenanceTeamService.updateReportStatus(reportId, "REJECTED", token);
+
+      toast({
+        title: "Success",
+        description: "Report rejected successfully",
+      });
+      
+      // Refresh the reports list
+      const reports = await reportService.getAssignedReports(userId, token);
+      setAssignedReports(reports);
+    } catch (error: any) {
+      console.error('Error rejecting report:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reject report",
+        variant: "destructive"
+      });
     }
   };
 
@@ -265,6 +333,24 @@ const MaintenanceTeamDashboard = () => {
                           Update Status
                         </Button>
                       </div>
+
+                      <div className="flex gap-2 mt-4">
+                        <Button
+                          className="flex-1 bg-purple-600 hover:bg-purple-700"
+                          onClick={() => {
+                            setSelectedReport(report);
+                            setIsHelpRequestDialogOpen(true);
+                          }}
+                        >
+                          Request Help
+                        </Button>
+                        <Button
+                          className="flex-1 bg-red-600 hover:bg-red-700"
+                          onClick={() => handleRejectReport(report.id)}
+                        >
+                          Reject
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -330,6 +416,59 @@ const MaintenanceTeamDashboard = () => {
                 </div>
               </>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Help Request Dialog */}
+      <Dialog open={isHelpRequestDialogOpen} onOpenChange={setIsHelpRequestDialogOpen}>
+        <DialogContent className="bg-[#1E2A13] text-white border-[#255F38]">
+          <DialogHeader>
+            <DialogTitle>Request Help</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Required Skills</label>
+              <input
+                type="text"
+                className="w-full mt-1 bg-[#2A3B1C] border-[#255F38] rounded-md"
+                value={helpRequestData.requiredSkills}
+                onChange={(e) => setHelpRequestData(prev => ({ ...prev, requiredSkills: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Work Location</label>
+              <input
+                type="text"
+                className="w-full mt-1 bg-[#2A3B1C] border-[#255F38] rounded-md"
+                value={helpRequestData.workLocation}
+                onChange={(e) => setHelpRequestData(prev => ({ ...prev, workLocation: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Required Capacity</label>
+              <input
+                type="number"
+                className="w-full mt-1 bg-[#2A3B1C] border-[#255F38] rounded-md"
+                value={helpRequestData.requiredCapacity}
+                onChange={(e) => setHelpRequestData(prev => ({ ...prev, requiredCapacity: parseInt(e.target.value) || 0 }))}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Additional Notes</label>
+              <textarea
+                className="w-full mt-1 bg-[#2A3B1C] border-[#255F38] rounded-md"
+                value={helpRequestData.additionalNotes}
+                onChange={(e) => setHelpRequestData(prev => ({ ...prev, additionalNotes: e.target.value }))}
+                rows={4}
+              />
+            </div>
+            <Button
+              className="w-full bg-[#255F38] hover:bg-[#255F38]/80"
+              onClick={() => selectedReport && handleRequestHelp(selectedReport.id)}
+            >
+              Submit Help Request
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

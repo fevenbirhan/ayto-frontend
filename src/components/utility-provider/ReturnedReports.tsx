@@ -5,96 +5,205 @@ import { useToast } from "@/components/ui/use-toast";
 import { AuthContext } from "@/context/AuthContext";
 import { Report } from "@/services/report";
 import { utilityProviderService } from "@/services/utility-provider";
+import { MaintenanceTeam, maintenanceTeamService } from "@/services/maintenance-team";
+import { reportService } from "@/services/report";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Clock, MapPin } from "lucide-react";
 
 const ReturnedReports = () => {
   const { toast } = useToast();
   const { token, userId } = useContext(AuthContext);
   const [reports, setReports] = useState<Report[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [teams, setTeams] = useState<MaintenanceTeam[]>([]);
+  const [selectedTeams, setSelectedTeams] = useState<{ [key: string]: string }>({});
+  const [assigningReports, setAssigningReports] = useState<{ [key: string]: boolean }>({});
+
+  const fetchReports = async () => {
+    if (!token || !userId) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const providerReports = await utilityProviderService.getProviderReports(userId, token);
+      // Filter for HELP_REQUESTED and REJECTED reports
+      const returnedReports = providerReports.filter(report => 
+        report.status === 'HELP_REQUESTED' || report.status === 'REJECTED'
+      );
+      setReports(returnedReports);
+
+      // Fetch maintenance teams
+      const teamsData = await maintenanceTeamService.getMaintenanceTeams(userId, token);
+      setTeams(teamsData);
+    } catch (error: any) {
+      console.error('Error fetching data:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to fetch data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchReturnedReports = async () => {
-      if (!token || !userId) return;
+    fetchReports();
+  }, [token, userId]);
 
-      try {
-        setIsLoading(true);
-        // Get provider reports and filter for REJECTED status
-        const providerReports = await utilityProviderService.getProviderReports(userId, token);
-        const returnedReports = providerReports.filter(
-          report => report.status === 'REJECTED'
-        );
-        setReports(returnedReports);
-      } catch (error) {
-        console.error('Error fetching returned reports:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load returned reports",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-      }
+  const handleAssignTeam = async (reportId: string) => {
+    const selectedTeamId = selectedTeams[reportId];
+    if (!selectedTeamId || !token) {
+      toast({
+        title: "Error",
+        description: "Please select a maintenance team",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setAssigningReports(prev => ({ ...prev, [reportId]: true }));
+    try {
+      await reportService.assignMaintenanceTeam(reportId, selectedTeamId, token);
+      toast({
+        title: "Success",
+        description: "Report reassigned to maintenance team successfully",
+      });
+      fetchReports(); // Refresh the list
+    } catch (error: any) {
+      console.error('Error assigning team:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to assign maintenance team",
+        variant: "destructive"
+      });
+    } finally {
+      setAssigningReports(prev => ({ ...prev, [reportId]: false }));
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
 
-    fetchReturnedReports();
-  }, [token, userId, toast]);
+  const formatLocation = (location: string) => {
+    const [lat, lng] = location.split(",").map(Number);
+    return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+  };
 
-  if (isLoading) {
+  const getStatusBadgeClass = (status: string) => {
+    switch (status) {
+      case "HELP_REQUESTED":
+        return "bg-purple-600/20 text-purple-400";
+      case "REJECTED":
+        return "bg-red-600/20 text-red-400";
+      default:
+        return "bg-gray-600/20 text-gray-400";
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+      <div className="text-center py-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+        <p className="mt-2 text-gray-400">Loading reports...</p>
+      </div>
+    );
+  }
+
+  if (!token || !userId) {
+    return (
+      <div className="text-center py-4 text-red-500">
+        Please log in to view reports.
+      </div>
+    );
+  }
+
+  if (reports.length === 0) {
+    return (
+      <div className="text-center py-4 text-gray-500">
+        No returned reports found.
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-white">Returned Reports</h2>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <h2 className="text-2xl font-bold text-white mb-6">Returned Reports ({reports.length})</h2>
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {reports.map((report) => (
-          <Card key={report.id} className="bg-[#2D2D2D] border-[#404040]">
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-white text-lg">{report.title}</CardTitle>
-                <Badge className="bg-red-500/20 text-red-500">
-                  Returned
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <p className="text-sm text-gray-400">Category</p>
-                <p className="text-white">{report.category}</p>
-              </div>
-              
-              <div className="space-y-2">
-                <p className="text-sm text-gray-400">Description</p>
-                <p className="text-white text-sm line-clamp-3">{report.description}</p>
-              </div>
-              
-              <div className="space-y-2">
-                <p className="text-sm text-gray-400">Location</p>
-                <p className="text-white text-sm">{report.locationName || report.location}</p>
+          <Card key={report.id} className="bg-[#1E2A13] border-[#255F38] text-white overflow-hidden">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex justify-between items-start gap-2">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold line-clamp-2">{report.title}</h3>
+                </div>
+                <div className={`flex items-center text-xs px-2 py-1 rounded-full whitespace-nowrap ${getStatusBadgeClass(report.status)}`}>
+                  <Clock className="h-4 w-4 mr-1" />
+                  <span>{report.status}</span>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <p className="text-sm text-gray-400">Return Reason</p>
-                <p className="text-white text-sm">
-                  This issue requires specialized skills or equipment beyond our current capabilities.
-                </p>
+              <div className="flex items-center gap-2 text-sm text-white/70">
+                <span className="px-2 py-1 bg-[#2A3B1C] rounded-md">{report.category}</span>
+              </div>
+
+              <p className="text-sm line-clamp-3">{report.description}</p>
+
+              <div className="text-sm text-white/70">
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4" />
+                  {report.locationName || formatLocation(report.location)}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
+                <div className="text-sm text-white/50">
+                  <Clock className="h-4 w-4 inline mr-1" />
+                  {formatDate(report.createdAt)}
+                </div>
+
+                <div className="space-y-2">
+                  <Select 
+                    value={selectedTeams[report.id]} 
+                    onValueChange={(value) => setSelectedTeams(prev => ({ ...prev, [report.id]: value }))}
+                  >
+                    <SelectTrigger className="bg-[#2A3B1C] border-[#255F38]">
+                      <SelectValue placeholder="Select a maintenance team" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#2A3B1C] border-[#255F38]">
+                      {teams.map((team) => (
+                        <SelectItem
+                          key={team.maintenanceTeamId}
+                          value={team.maintenanceTeamId}
+                          className="text-white hover:bg-[#255F38]/20"
+                        >
+                          {team.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    className="w-full bg-[#255F38] hover:bg-[#255F38]/80"
+                    onClick={() => handleAssignTeam(report.id)}
+                    disabled={assigningReports[report.id]}
+                  >
+                    {assigningReports[report.id] ? "Reassigning..." : "Reassign Team"}
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
         ))}
-
-        {reports.length === 0 && (
-          <div className="col-span-full text-center py-12">
-            <p className="text-gray-400">No returned reports available</p>
-          </div>
-        )}
       </div>
     </div>
   );
