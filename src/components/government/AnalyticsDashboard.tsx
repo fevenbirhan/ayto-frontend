@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -6,73 +6,17 @@ import { Download, BarChart3, PieChart, Calendar, TrendingUp, Activity, Sun, Moo
 import { LineChart, Line, BarChart as RechartsBarChart, Bar, PieChart as RechartsPieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/context/AuthContext";
-
-// Mock data for the charts
-const monthlyReportsData = [
-  { name: 'Jan', reports: 65 },
-  { name: 'Feb', reports: 59 },
-  { name: 'Mar', reports: 80 },
-  { name: 'Apr', reports: 81 },
-  { name: 'May', reports: 56 },
-  { name: 'Jun', reports: 55 },
-  { name: 'Jul', reports: 40 },
-  { name: 'Aug', reports: 70 },
-  { name: 'Sep', reports: 90 },
-  { name: 'Oct', reports: 72 },
-  { name: 'Nov', reports: 0 },
-  { name: 'Dec', reports: 0 },
-];
-
-const categoryData = [
-  { name: 'Water Issues', value: 40 },
-  { name: 'Road Damage', value: 30 },
-  { name: 'Electricity', value: 20 },
-  { name: 'Telecom', value: 10 },
-];
-
-const statusData = [
-  { name: 'Pending', reports: 45 },
-  { name: 'Assigned', reports: 30 },
-  { name: 'In Progress', reports: 20 },
-  { name: 'Resolved', reports: 65 },
-  { name: 'Rejected', reports: 10 },
-];
-
-const responseTimeData = [
-  { name: 'Water', avgDays: 2.5 },
-  { name: 'Roads', avgDays: 5.2 },
-  { name: 'Electricity', avgDays: 1.8 },
-  { name: 'Telecom', avgDays: 3.1 },
-];
+import { TimeRange, CategoryDistributionResponse, StatusDistributionResponse, TeamPerformanceResponse, SystemSummaryResponse, MonthlyTrendsResponse } from "@/types/analytics";
+import {
+  fetchMonthlyTrends,
+  fetchCategoryDistribution,
+  fetchStatusDistribution,
+  fetchTeamPerformance,
+  fetchSystemSummary,
+} from "@/services/analyticsService";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
-// Mock data - replace with actual API data
-const reportCategories = [
-  { name: "Water", value: 35 },
-  { name: "Electricity", value: 25 },
-  { name: "Waste", value: 20 },
-  { name: "Roads", value: 15 },
-  { name: "Other", value: 5 },
-];
-
-const monthlyTrends = [
-  { month: "Jan", reports: 65, resolved: 45 },
-  { month: "Feb", reports: 75, resolved: 60 },
-  { month: "Mar", reports: 85, resolved: 70 },
-  { month: "Apr", reports: 95, resolved: 80 },
-  { month: "May", reports: 105, resolved: 90 },
-  { month: "Jun", reports: 115, resolved: 100 },
-];
-
-const teamPerformance = [
-  { team: "Water", tasks: 120, avgTime: 2.5 },
-  { team: "Electricity", tasks: 95, avgTime: 3.2 },
-  { team: "Waste", tasks: 85, avgTime: 2.8 },
-  { team: "Roads", tasks: 75, avgTime: 4.1 },
-];
-
-// Translation dictionary
 const translations = {
   en: {
     title: "Analytics Dashboard",
@@ -137,26 +81,81 @@ const translations = {
 };
 
 export const AnalyticsDashboard = () => {
-  const [timeFrame, setTimeFrame] = React.useState('month');
+  const [timeFrame, setTimeFrame] = React.useState<TimeRange>('month');
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const [monthlyTrends, setMonthlyTrends] = React.useState<MonthlyTrendsResponse[]>([]);
+  const [categoryDistribution, setCategoryDistribution] = React.useState<CategoryDistributionResponse[]>([]);
+  const [statusDistribution, setStatusDistribution] = React.useState<StatusDistributionResponse[]>([]);
+  const [teamPerformance, setTeamPerformance] = React.useState<TeamPerformanceResponse[]>([]);
+  const [systemSummary, setSystemSummary] = React.useState<SystemSummaryResponse | null>(null);
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage } = useAuth();
   
   const t = translations[language as keyof typeof translations] || translations.en;
-  
-  // Calculate statistics
-  const totalReports = monthlyReportsData.reduce((acc, item) => acc + item.reports, 0);
-  const resolvedReports = 65; // From statusData
-  const pendingReports = 45; // From statusData
-  const avgResponseTime = responseTimeData.reduce((acc, item) => acc + item.avgDays, 0) / responseTimeData.length;
-  
-  const totalResolved = monthlyTrends.reduce((sum, month) => sum + month.resolved, 0);
-  const avgResolutionTime = teamPerformance.reduce((sum, team) => sum + team.avgTime, 0) / teamPerformance.length;
 
-  
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const [
+          trendsData,
+          categoriesData,
+          statusData,
+          teamsData,
+          summaryData,
+        ] = await Promise.all([
+          fetchMonthlyTrends(timeFrame),
+          fetchCategoryDistribution(timeFrame),
+          fetchStatusDistribution(timeFrame),
+          fetchTeamPerformance(timeFrame),
+          fetchSystemSummary(timeFrame),
+        ]);
+
+        console.log('API Responses:', {
+          trendsData,
+          categoriesData,
+          statusData,
+          teamsData,
+          summaryData
+        });
+
+        setMonthlyTrends(trendsData);
+        setCategoryDistribution(categoriesData);
+        setStatusDistribution(statusData);
+        setTeamPerformance(teamsData);
+        setSystemSummary(summaryData);
+      } catch (err) {
+        console.error('Analytics fetch error details:', err);
+        setError('Failed to fetch analytics data. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [timeFrame]);
 
   const toggleLanguage = () => {
     setLanguage(language === "en" ? "am" : "en");
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-red-500">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-4 md:p-6">
@@ -185,7 +184,7 @@ export const AnalyticsDashboard = () => {
             {t.buttons.toggleTheme}
           </Button>
           
-          <Tabs value={timeFrame} onValueChange={setTimeFrame}>
+          <Tabs value={timeFrame} onValueChange={(value) => setTimeFrame(value as TimeRange)}>
             <TabsList className="bg-background">
               <TabsTrigger value="week">{t.timeFrames.week}</TabsTrigger>
               <TabsTrigger value="month">{t.timeFrames.month}</TabsTrigger>
@@ -210,9 +209,9 @@ export const AnalyticsDashboard = () => {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalReports}</div>
+            <div className="text-2xl font-bold">{systemSummary?.totalReports || 0}</div>
             <p className="text-xs text-muted-foreground">
-              +{((totalReports - 500) / 500 * 100).toFixed(1)}% {t.cards.fromLastMonth}
+              {t.cards.fromLastMonth}
             </p>
           </CardContent>
         </Card>
@@ -225,9 +224,9 @@ export const AnalyticsDashboard = () => {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalResolved}</div>
+            <div className="text-2xl font-bold">{systemSummary?.resolvedReports || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {((totalResolved / totalReports) * 100).toFixed(1)}% {t.cards.resolutionRate}
+              {((systemSummary?.resolvedReports / systemSummary?.totalReports) * 100 || 0).toFixed(1)}% {t.cards.resolutionRate}
             </p>
           </CardContent>
         </Card>
@@ -240,59 +239,63 @@ export const AnalyticsDashboard = () => {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{avgResolutionTime.toFixed(1)} {language === 'am' ? 'ቀናት' : 'days'}</div>
+            <div className="text-2xl font-bold">
+              {systemSummary?.averageResolutionTime?.toFixed(1) || 0} {language === 'am' ? 'ቀናት' : 'days'}
+            </div>
             <p className="text-xs text-muted-foreground">
-              -0.5 {language === 'am' ? 'ቀናት' : 'days'} {t.cards.fromLastMonth}
+              {t.cards.fromLastMonth}
             </p>
           </CardContent>
         </Card>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              {t.charts.monthlyTrends}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={monthlyTrends}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
-                  <XAxis dataKey="month" stroke="hsl(var(--foreground))" />
-                  <YAxis stroke="hsl(var(--foreground))" />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--background))",
-                      borderColor: "hsl(var(--border))",
-                      borderRadius: "var(--radius)"
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="reports"
-                    stroke="hsl(var(--primary))"
-                    name={t.charts.totalReports}
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="resolved"
-                    stroke="hsl(var(--secondary))"
-                    name={t.charts.resolvedReports}
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="col-span-2">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                {t.charts.monthlyTrends}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={Array.isArray(monthlyTrends) ? monthlyTrends : []}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+                    <XAxis dataKey="month" stroke="hsl(var(--foreground))" />
+                    <YAxis stroke="hsl(var(--foreground))" />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: "hsl(var(--background))",
+                        borderColor: "hsl(var(--border))",
+                        borderRadius: "var(--radius)"
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="totalReports"
+                      stroke="hsl(var(--primary))"
+                      name={t.charts.totalReports}
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="resolvedReports"
+                      stroke="hsl(var(--secondary))"
+                      name={t.charts.resolvedReports}
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
         
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
@@ -306,16 +309,16 @@ export const AnalyticsDashboard = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <RechartsPieChart>
                   <Pie
-                    data={reportCategories}
+                    data={Array.isArray(categoryDistribution) ? categoryDistribution : []}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
                     outerRadius={80}
                     fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    dataKey="count"
+                    label={({ category, percent }) => `${category} ${(percent * 100).toFixed(0)}%`}
                   >
-                    {reportCategories.map((entry, index) => (
+                    {Array.isArray(categoryDistribution) && categoryDistribution.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -332,7 +335,7 @@ export const AnalyticsDashboard = () => {
           </CardContent>
         </Card>
         
-        <Card className="md:col-span-2 hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
@@ -342,9 +345,9 @@ export const AnalyticsDashboard = () => {
           <CardContent>
             <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <RechartsBarChart data={teamPerformance}>
+                <RechartsBarChart data={Array.isArray(teamPerformance) ? teamPerformance : []}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
-                  <XAxis dataKey="team" stroke="hsl(var(--foreground))" />
+                  <XAxis dataKey="teamName" stroke="hsl(var(--foreground))" />
                   <YAxis yAxisId="left" orientation="left" stroke="hsl(var(--primary))" />
                   <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--secondary))" />
                   <Tooltip 
@@ -356,14 +359,14 @@ export const AnalyticsDashboard = () => {
                   />
                   <Bar
                     yAxisId="left"
-                    dataKey="tasks"
+                    dataKey="completedTasks"
                     fill="hsl(var(--primary))"
                     name={t.charts.tasksCompleted}
                     radius={[4, 4, 0, 0]}
                   />
                   <Bar
                     yAxisId="right"
-                    dataKey="avgTime"
+                    dataKey="averageResolutionTime"
                     fill="hsl(var(--secondary))"
                     name={t.charts.avgResTime}
                     radius={[4, 4, 0, 0]}

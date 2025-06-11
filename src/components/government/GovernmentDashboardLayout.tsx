@@ -32,7 +32,7 @@ export const GovernmentDashboardLayout = ({ children }: GovernmentDashboardLayou
     { name: "Dashboard", href: "/government/dashboard", icon: LayoutDashboard },
     { name: "Create Provider", href: "/government/create-provider", icon: Building2 },
     { name: "Manage Providers", href: "/government/manage-providers", icon: Building2 },
-    { name: "Analytics", href: "/government/analytics", icon: BarChart3 },
+    { name: "Analytics", href: "/analytics", icon: BarChart3 },
     { name: "Profile", href: "/government/profile", icon: User },
     { name: "Settings", href: "/government/settings", icon: Settings },
   ];
