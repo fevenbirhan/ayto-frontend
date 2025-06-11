@@ -129,6 +129,21 @@ class MaintenanceTeamService {
             throw error;
         }
     }
+
+    async assignTeamToReport(teamId: string, reportId: string, token: string): Promise<void> {
+        try {
+            await axios.post(
+                `${this.baseUrl}/${teamId}/assign/${reportId}`,
+                {},
+                { headers: this.getHeaders(token) }
+            );
+        } catch (error: any) {
+            if (error.response?.status === 403) {
+                throw new Error('You do not have permission to assign teams to reports.');
+            }
+            throw error;
+        }
+    }
 }
 
 export const maintenanceTeamService = new MaintenanceTeamService(); 

@@ -7,14 +7,16 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "@/services/auth";
+import { Role } from "@/services/employee";
 
 
 // ----------------- Auth Context -----------------
 export interface AuthContextType {
     token: string | null;
-    userRole: string | null;
+    userRole: Role | null;
     userName: string | null;
     userId: string | null;
+    maintenanceTeamId?: string;
     login: (email: string, password: string) => Promise<void>;
     logout: () => void;
     isAuthenticated: boolean;
@@ -33,9 +35,12 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 // ----------------- Auth Provider -----------------
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
-    const [userRole, setUserRole] = useState<string | null>(localStorage.getItem("role"));
+    const [userRole, setUserRole] = useState<Role | null>(localStorage.getItem("role") as Role | null);
     const [userName, setUserName] = useState<string | null>(localStorage.getItem("userName"));
     const [userId, setUserId] = useState<string | null>(localStorage.getItem("userId"));
+    const [maintenanceTeamId, setMaintenanceTeamId] = useState<string | undefined>(
+        localStorage.getItem("maintenanceTeamId") || undefined
+    );
     const [isLoading, setIsLoading] = useState(true);
 
     const navigate = useNavigate();
@@ -102,9 +107,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             const response = await authService.login({ email, password });
 
             setToken(response.token);
-            setUserRole(response.role);
+            setUserRole(response.role as Role);
             setUserName(response.name);
             setUserId(response.userId);
+
+            if (response.role === 'MAINTENANCE_TEAM') {
+                setMaintenanceTeamId(response.maintenanceTeamId);
+            }
 
             localStorage.setItem("token", response.token);
             localStorage.setItem("role", response.role);
@@ -124,10 +133,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem("role");
         localStorage.removeItem("userName");
         localStorage.removeItem("userId");
+        localStorage.removeItem("maintenanceTeamId");
         setToken(null);
         setUserRole(null);
         setUserName(null);
         setUserId(null);
+        setMaintenanceTeamId(undefined);
         navigate("/login");
     };
 
@@ -136,6 +147,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         userRole,
         userName,
         userId,
+        maintenanceTeamId,
         login,
         logout,
         isAuthenticated: !!token,
