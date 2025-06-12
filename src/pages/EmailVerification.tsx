@@ -100,7 +100,7 @@ const EmailVerification = () => {
       
       setIsOtpSent(true);
       // Start countdown for resend (2 minutes)
-      setCountdown(120);
+      setCountdown(300);
       const timer = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
@@ -112,11 +112,20 @@ const EmailVerification = () => {
       }, 1000);
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || "Failed to send OTP";
-      toast({
-        title: t.error,
-        description: errorMessage,
-        variant: "destructive",
-      });
+      // Check if email is already in use
+      if (errorMessage.toLowerCase().includes("email already in use")) {
+        toast({
+          title: t.error,
+          description: "This email is already registered. Please use a different email or try logging in.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: t.error,
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -252,7 +261,7 @@ const EmailVerification = () => {
               <Button
                 onClick={handleGetOTP}
                 disabled={isLoading || !email}
-                className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white shadow-lg hover:shadow-primary/30 transition-all"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/30 transition-all dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white"
               >
                 {isLoading ? t.sending : t.getOtp}
               </Button>
@@ -278,7 +287,7 @@ const EmailVerification = () => {
                   <Button
                     onClick={handleVerifyOTP}
                     disabled={isLoading || !otp}
-                    className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white shadow-lg hover:shadow-primary/30 transition-all"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-500/30 transition-all dark:bg-blue-500 dark:hover:bg-blue-600 dark:text-white"
                   >
                     {isLoading ? t.verifying : t.verifyOtp}
                   </Button>
@@ -292,7 +301,7 @@ const EmailVerification = () => {
                       onClick={handleGetOTP}
                       disabled={isLoading}
                       variant="outline"
-                      className="w-full border-border hover:bg-muted/50"
+                      className="w-full border-border hover:bg-muted/50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white"
                     >
                       {t.resendOtp}
                     </Button>
@@ -303,7 +312,7 @@ const EmailVerification = () => {
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer text="© 2024 Community Reports. All rights reserved." darkMode={theme === "dark"} />
     </div>
   );
 };
