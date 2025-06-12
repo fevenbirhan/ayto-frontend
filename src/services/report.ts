@@ -18,6 +18,7 @@ export interface Report {
   isEdited: boolean;
   assignedTeamId?: string;
   utilityProviderId?: string;
+  message?: string;  // Add message field for duplicate reports
 }
 
 export interface CreateReportFormFields {
@@ -36,10 +37,15 @@ export interface UpdateReportStatusData {
 class ReportService {
   private baseUrl = 'http://localhost:8080/ayto/reports';
 
-  private getHeaders(token: string) {
+  private getHeaders(token: string, contentType?: string) {
     const headers: Record<string, string> = {
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`
     };
+    
+    if (contentType) {
+      headers['Content-Type'] = contentType;
+    }
+    
     return headers;
   }
 
@@ -59,62 +65,21 @@ class ReportService {
 
   async createReport(formData: FormData, token: string): Promise<Report> {
     try {
-      // Ensure locationName is included in formData if not already present
-      if (!formData.has('locationName')) {
-        const location = formData.get('location') as string;
-        if (location) {
-          const [lat, lng] = location.split(',');
-          const locationName = await this.getLocationName(parseFloat(lat), parseFloat(lng));
-          formData.append('locationName', locationName);
-        }
-      }
-
-      console.log('Creating report with data:', {
-        title: formData.get('title'),
-        category: formData.get('category'),
-        location: formData.get('location'),
-        locationName: formData.get('locationName')
-      });
-
       // Create the report
       const response = await axios.post(this.baseUrl, formData, {
-        headers: {
-          ...this.getHeaders(token),
-        }
+        headers: this.getHeaders(token, 'multipart/form-data')
       });
 
-      const createdReport = response.data;
-      console.log('Report created successfully:', createdReport);
-
-      // Find matching provider
-      const matchingProvider = await ReportRouter.findMatchingProvider(createdReport, token);
-      
-      if (matchingProvider) {
-        console.log('Found matching provider:', matchingProvider.id);
-        try {
-          // Update the report with the provider ID
-          const updatedReport = await axios.put(
-            `${this.baseUrl}/${createdReport.id}/status`,
-            { 
-              status: 'PENDING',
-              utilityProviderId: matchingProvider.id 
-            },
-            {
-              headers: {
-                ...this.getHeaders(token),
-                'Content-Type': 'application/json'
-              }
-            }
-          );
-          console.log('Report assigned to provider:', updatedReport.data);
-          return updatedReport.data;
-        } catch (error) {
-          console.error('Failed to assign provider, but report was created:', error);
-          return createdReport;
-        }
+      // If the response includes a message about a duplicate report
+      if (response.data.message) {
+        // Return the existing report with the message
+        return {
+          ...response.data.report,
+          message: response.data.message
+        };
       }
 
-      return createdReport;
+      return response.data;
     } catch (error: any) {
       console.error('Error in createReport:', error);
       if (error.response?.status === 403) {
@@ -178,10 +143,7 @@ class ReportService {
         `${this.baseUrl}/${reportId}/status`,
         data,
         {
-          headers: {
-            ...this.getHeaders(token),
-            'Content-Type': 'application/json'
-          }
+          headers: this.getHeaders(token, 'application/json')
         }
       );
       return response.data;
@@ -251,9 +213,7 @@ class ReportService {
       formData.append('isEdited', 'true');
 
       const response = await axios.put(`${this.baseUrl}/${reportId}`, formData, {
-        headers: {
-          ...this.getHeaders(token),
-        }
+        headers: this.getHeaders(token, 'multipart/form-data')
       });
       return response.data;
     } catch (error: any) {
@@ -305,7 +265,7 @@ class ReportService {
       const response = await axios.put(
         `http://localhost:8080/api/maintenance-teams/reports/${reportId}/status`,
         { status },
-        { headers: this.getHeaders(token) }
+        { headers: this.getHeaders(token, 'application/json') }
       );
       return response.data;
     } catch (error: any) {
@@ -331,3 +291,4 @@ class ReportService {
 }
 
 export const reportService = new ReportService();
+

@@ -15,6 +15,8 @@ import { LocationPicker } from "@/components/maps/LocationPicker";
 import { useToast } from "@/components/ui/use-toast";
 import { AuthContext } from "@/context/AuthContext";
 import { reportService, Report } from "@/services/report";
+import { useNavigate } from "react-router-dom";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ReportFormProps {
   onSubmitSuccess: () => void;
@@ -25,6 +27,7 @@ interface ReportFormProps {
 export const ReportForm = ({ onSubmitSuccess, reportToEdit, mode = 'create' }: ReportFormProps) => {
   const { toast } = useToast();
   const { token, userId } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
@@ -33,6 +36,7 @@ export const ReportForm = ({ onSubmitSuccess, reportToEdit, mode = 'create' }: R
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [duplicateMessage, setDuplicateMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -90,75 +94,49 @@ export const ReportForm = ({ onSubmitSuccess, reportToEdit, mode = 'create' }: R
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!token) {
-      toast({
-        title: "Error",
-        description: "Please log in to submit reports",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!location) {
-      toast({
-        title: "Error",
-        description: "Please select a location on the map",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!title || !description || !category) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (!token) return;
 
     setIsSubmitting(true);
+    setDuplicateMessage(null);
 
     try {
-      const formData = new FormData();
-      formData.append("title", title.trim());
-      formData.append("description", description.trim());
-      formData.append("category", category);
-      formData.append("location", `${location.lat},${location.lng}`);
-      if (location.address) {
-        formData.append("locationName", location.address);
-      }
-
+      const submitData = new FormData();
+      submitData.append('title', title);
+      submitData.append('description', description);
+      submitData.append('category', category);
+      submitData.append('location', `${location?.lat},${location?.lng}`);
+      submitData.append('locationName', location?.address || '');
+      
       if (existingImageUrls.length > 0) {
-        formData.append("existingImages", JSON.stringify(existingImageUrls));
+        submitData.append("existingImages", JSON.stringify(existingImageUrls));
       }
 
       images.forEach((image) => {
-        formData.append("images", image);
+        submitData.append('images', image);
       });
 
-      if (mode === 'edit' && reportToEdit) {
-        formData.append("isEdited", "true");
-        
-        // Debug logs
-        console.log('Submitting edit with FormData:');
-        for (let [key, value] of formData.entries()) {
-          console.log(`${key}: ${value}`);
-        }
+      const response = await reportService.createReport(submitData, token);
 
-        await reportService.updateReport(reportToEdit.id, formData, token);
+      // Check if this is a duplicate report
+      if (response.message) {
+        setDuplicateMessage(response.message);
         toast({
-          title: "Success",
-          description: "Report updated successfully",
+          title: "Similar Report Found",
+          description: response.message,
+          variant: "default"
         });
-      } else {
-        await reportService.createReport(formData, token);
-        toast({
-          title: "Success",
-          description: "Report submitted successfully",
-        });
+        
+        // Navigate to the existing report after a short delay
+        setTimeout(() => {
+          navigate(`/my-reports`);
+        }, 2000);
+        return;
       }
+
+      toast({
+        title: "Success",
+        description: mode === 'create' ? "Report created successfully" : "Report updated successfully",
+      });
 
       setTitle("");
       setDescription("");
@@ -208,6 +186,12 @@ export const ReportForm = ({ onSubmitSuccess, reportToEdit, mode = 'create' }: R
             <h2 className="text-2xl font-bold text-white mb-4 sticky top-0 bg-[#1A1A1A] py-2 z-10">
               {mode === 'edit' ? 'Edit Report' : 'Submit New Report'}
             </h2>
+            
+            {duplicateMessage && (
+              <Alert variant="info">
+                <AlertDescription>{duplicateMessage}</AlertDescription>
+              </Alert>
+            )}
             
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -313,7 +297,7 @@ export const ReportForm = ({ onSubmitSuccess, reportToEdit, mode = 'create' }: R
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={onSubmitSuccess}
+                onClick={() => navigate('/resident/dashboard')}
                 className="border-[#404040] text-white hover:bg-[#404040]"
                 disabled={isSubmitting}
               >
