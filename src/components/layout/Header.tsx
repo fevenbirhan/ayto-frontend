@@ -77,7 +77,6 @@ export const Header = () => {
   const publicNavItems = [
     { label: t.home, href: "/" },
     { label: t.features, href: "/#features" },
-    { label: t.analytics, href: "/#analytics" },
   ];
 
   // Navigation items for logged-in residents
