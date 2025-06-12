@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { Pie } from 'react-chartjs-2';
-
-ChartJS.register(ArcElement, Tooltip, Legend);
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface DistributionChartProps {
   title: string;
@@ -22,33 +14,37 @@ const DistributionChart: React.FC<DistributionChartProps> = ({
   data,
   backgroundColor,
 }) => {
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'right' as const,
-      },
-      title: {
-        display: true,
-        text: title,
-      },
-    },
-  };
-
-  const chartData = {
-    labels,
-    datasets: [
-      {
-        data,
-        backgroundColor,
-        borderWidth: 1,
-      },
-    ],
-  };
+  // Transform the data to match recharts format
+  const chartData = labels.map((label, index) => ({
+    name: label,
+    value: data[index],
+  }));
 
   return (
     <div className="p-4 bg-white rounded-lg shadow">
-      <Pie options={options} data={chartData} />
+      <h3 className="text-lg font-semibold mb-4">{title}</h3>
+      <div className="h-[300px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={chartData}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              outerRadius={80}
+              fill="#8884d8"
+              dataKey="value"
+              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={backgroundColor[index % backgroundColor.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };

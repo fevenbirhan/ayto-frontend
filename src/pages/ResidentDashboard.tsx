@@ -16,7 +16,7 @@ import { useAuth } from "@/context/AuthContext";
 const ResidentDashboard = () => {
   const { toast } = useToast();
   const { theme } = useTheme();
-  const { language } = useAuth();
+  const { language, userName } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [showReportForm, setShowReportForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,7 +25,7 @@ const ResidentDashboard = () => {
   const translations = {
     en: {
       loading: "Loading dashboard...",
-      title: "Resident Dashboard",
+      hello: "Hello",
       searchPlaceholder: "Search reports...",
       newReport: "New Report",
       errorTitle: "Error",
@@ -35,7 +35,7 @@ const ResidentDashboard = () => {
     },
     am: {
       loading: "ዳሽቦርድ እየተጫነ ነው...",
-      title: "የተመሰረተ ዳሽቦርድ",
+      hello: "ሰላም",
       searchPlaceholder: "ሪፖርቶችን ይፈልጉ...",
       newReport: "አዲስ ሪፖርት",
       errorTitle: "ስህተት",
@@ -89,7 +89,7 @@ const ResidentDashboard = () => {
           {/* Header Section */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <h1 className={`text-3xl md:text-4xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-800'}`}>
-              {t.title}
+              {t.hello}, {userName}
             </h1>
             
             <div className="flex items-center gap-3 w-full md:w-auto">
@@ -143,7 +143,7 @@ const ResidentDashboard = () => {
           </div>
         </div>
       </PageContent>
-      <Footer />
+      <Footer text="© 2024 AYTO. All rights reserved." darkMode={theme === 'dark'} />
     </div>
   );
 };
