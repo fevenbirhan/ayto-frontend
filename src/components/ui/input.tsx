@@ -15,16 +15,15 @@ const inputTranslations = {
   },
 };
 
+// Allow flexible variant/size, but `lang` is now relaxed to just `string`
 type InputVariant = "default" | "filled" | "outline";
 type InputSize = "sm" | "md" | "lg";
-type InputLanguage = "en" | "am";
 
-interface InputProps 
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
+interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
   variant?: InputVariant;
   size?: InputSize;
   label?: string;
-  lang?: InputLanguage;
+  lang?: string; // Relaxed from specific enum to plain string
   error?: string;
 }
 
@@ -42,7 +41,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     },
     ref
   ) => {
-    const t = (key: InputTranslationKey) => inputTranslations[lang][key];
+    // Use translation only if the language exists
+    const t = (key: InputTranslationKey) =>
+      inputTranslations[lang as keyof typeof inputTranslations]?.[key] ?? "";
 
     return (
       <div className="w-full space-y-1">
@@ -90,10 +91,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 );
 Input.displayName = "Input";
 
-// Input group component
+// InputGroup still works fine
 interface InputGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   dir?: "ltr" | "rtl";
-  lang?: InputLanguage;
+  lang?: string;
 }
 
 const InputGroup = React.forwardRef<HTMLDivElement, InputGroupProps>(
