@@ -277,100 +277,103 @@ export const CommunityReportsCards = ({
       ) : filteredReports.length === 0 ? (
         <div className="text-white text-center py-8">No reports found.</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 max-w-[1200px] mx-auto">
           {filteredReports.map((report) => (
             <Card
               key={report.id}
-              className="bg-[#1E2A13] border-[#255F38] text-white overflow-hidden"
+              className="bg-[#1E2A13] border-[#255F38] text-white overflow-hidden hover:border-[#3B7F59] transition-colors"
             >
-              <CardContent className="p-4 space-y-3">
-                <div className="flex justify-between items-start gap-2">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold line-clamp-2">{report.title}</h3>
-                    {report.isEdited && (
-                      <span className="inline-block mt-1 text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">
-                        Edited
-                      </span>
-                    )}
-                  </div>
-                  <div
-                    className={`flex items-center text-xs px-2 py-1 rounded-full whitespace-nowrap ${getStatusBadgeClass(
-                      report.status
-                    )}`}
-                  >
-                    {getStatusIcon(report.status)}
-                    <span className="ml-1">{getStatusText(report.status)}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 text-sm text-white/70">
-                  <span className="px-2 py-1 bg-[#2A3B1C] rounded-md">{report.category}</span>
-                </div>
-
-                <p className="text-sm line-clamp-3">{report.description}</p>
-
-                {report.imageUrls && report.imageUrls.length > 0 && (
-                  <div className="flex gap-2 overflow-x-auto py-2">
-                    {report.imageUrls.map((url, index) => (
-                      <img
-                        key={index}
-                        src={url}
-                        alt={`Report image ${index + 1}`}
-                        className="h-20 w-20 object-cover rounded-md flex-shrink-0"
-                      />
-                    ))}
-                  </div>
-                )}
-
-                <div className="text-sm text-white/70">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    {report.locationName || formatLocation(report.location)}
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center text-sm text-white/50 pt-2 border-t border-white/10">
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    {formatDate(report.createdAt)}
-                    {report.isEdited && (
-                      <span className="text-xs text-white/30">
-                        (Updated: {formatDate(report.updatedAt)})
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={`h-8 w-8 ${
-                          votingInProgress[report.id]
-                            ? "opacity-50 cursor-not-allowed"
-                            : "text-white/60 hover:text-white hover:bg-[#255F38]/20"
-                        }`}
-                        onClick={(e) => handleVote(report.id, "upvote", e)}
-                        disabled={votingInProgress[report.id]}
-                      >
-                        <ThumbsUp className="h-4 w-4" />
-                      </Button>
-                      <span className="text-sm">{report.upvotes || 0}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={`h-8 w-8 ${
-                          votingInProgress[report.id]
-                            ? "opacity-50 cursor-not-allowed"
-                            : "text-white/60 hover:text-white hover:bg-[#255F38]/20"
-                        }`}
-                        onClick={(e) => handleVote(report.id, "downvote", e)}
-                        disabled={votingInProgress[report.id]}
-                      >
-                        <ThumbsDown className="h-4 w-4" />
-                      </Button>
-                      <span className="text-sm">{report.downvotes || 0}</span>
+              <CardContent className="p-6">
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold mb-2">{report.title}</h3>
+                      {report.isEdited && (
+                        <span className="inline-block text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">
+                          Edited
+                        </span>
+                      )}
                     </div>
-                    <div className="text-sm">{report.residentName}</div>
+                    <div
+                      className={`flex items-center text-sm px-3 py-1.5 rounded-full whitespace-nowrap ${getStatusBadgeClass(
+                        report.status
+                      )}`}
+                    >
+                      {getStatusIcon(report.status)}
+                      <span className="ml-1.5">{getStatusText(report.status)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1.5 bg-[#2A3B1C] rounded-md text-sm">{report.category}</span>
+                  </div>
+
+                  <p className="text-base text-white/90">{report.description}</p>
+
+                  {report.imageUrls && report.imageUrls.length > 0 && (
+                    <div className="flex gap-3 overflow-x-auto py-2">
+                      {report.imageUrls.map((url, index) => (
+                        <img
+                          key={index}
+                          src={url}
+                          alt={`Report image ${index + 1}`}
+                          className="h-32 w-32 object-cover rounded-lg flex-shrink-0 border border-[#255F38]/30"
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center pt-4 border-t border-white/10">
+                    <div className="flex items-center gap-4 text-sm text-white/70">
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="h-4 w-4" />
+                        {report.locationName || formatLocation(report.location)}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="h-4 w-4" />
+                        {formatDate(report.createdAt)}
+                        {report.isEdited && (
+                          <span className="text-xs text-white/30">
+                            (Updated: {formatDate(report.updatedAt)})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={`h-8 w-8 ${
+                            votingInProgress[report.id]
+                              ? "opacity-50 cursor-not-allowed"
+                              : "text-white/60 hover:text-white hover:bg-[#255F38]/20"
+                          }`}
+                          onClick={(e) => handleVote(report.id, "upvote", e)}
+                          disabled={votingInProgress[report.id]}
+                        >
+                          <ThumbsUp className="h-4 w-4" />
+                        </Button>
+                        <span className="text-sm">{report.upvotes || 0}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={`h-8 w-8 ${
+                            votingInProgress[report.id]
+                              ? "opacity-50 cursor-not-allowed"
+                              : "text-white/60 hover:text-white hover:bg-[#255F38]/20"
+                          }`}
+                          onClick={(e) => handleVote(report.id, "downvote", e)}
+                          disabled={votingInProgress[report.id]}
+                        >
+                          <ThumbsDown className="h-4 w-4" />
+                        </Button>
+                        <span className="text-sm">{report.downvotes || 0}</span>
+                      </div>
+                      {report.residentName && (
+                        <div className="text-sm text-white/70">{report.residentName}</div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>
