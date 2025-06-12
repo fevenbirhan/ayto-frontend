@@ -93,8 +93,8 @@ const GovernmentDashboard = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
   const [unreadNotifications, setUnreadNotifications] = useState(3);
   
-  const { theme, setTheme } = useTheme();
-  const { language, setLanguage } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const { language, setLanguage, userName } = useAuth();
   
   const t = translations[language as keyof typeof translations] || translations.en;
 
@@ -122,10 +122,6 @@ const GovernmentDashboard = () => {
     setTimeout(() => {
       setIsLoading(false);
     }, 500);
-  };
-
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
   };
 
   const toggleLanguage = () => {
@@ -176,7 +172,7 @@ const GovernmentDashboard = () => {
                 )}
                 <div className="space-y-1">
                   <h1 className="text-3xl md:text-4xl font-bold">
-                    {activeTab === "analytics" && t.dashboard}
+                    {activeTab === "analytics" && `${userName} ${t.dashboard}`}
                     {activeTab === "create-provider" && t.createProvider}
                     {activeTab === "manage-providers" && t.manageProviders}
                   </h1>
@@ -381,7 +377,7 @@ const GovernmentDashboard = () => {
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer text="© 2024 AYTO. All rights reserved." darkMode={theme === 'dark'} />
     </div>
   );
 };

@@ -1,25 +1,5 @@
 import React from 'react';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface TrendChartProps {
   title: string;
@@ -33,32 +13,40 @@ interface TrendChartProps {
 }
 
 const TrendChart: React.FC<TrendChartProps> = ({ title, labels, datasets }) => {
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-      title: {
-        display: true,
-        text: title,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-      },
-    },
-  };
-
-  const data = {
-    labels,
-    datasets,
-  };
+  // Transform the data to match recharts format
+  const data = labels.map((label, index) => {
+    const dataPoint: { [key: string]: any } = { name: label };
+    datasets.forEach(dataset => {
+      dataPoint[dataset.label] = dataset.data[index];
+    });
+    return dataPoint;
+  });
 
   return (
     <div className="p-4 bg-white rounded-lg shadow">
-      <Line options={options} data={data} />
+      <h3 className="text-lg font-semibold mb-4">{title}</h3>
+      <div className="h-[300px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            {datasets.map((dataset, index) => (
+              <Line
+                key={dataset.label}
+                type="monotone"
+                dataKey={dataset.label}
+                stroke={dataset.borderColor}
+                fill={dataset.backgroundColor}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };

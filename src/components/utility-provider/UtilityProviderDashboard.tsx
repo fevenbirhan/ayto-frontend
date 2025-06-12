@@ -28,7 +28,7 @@ const UtilityProviderDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const { toast } = useToast();
-  const { token, userId, logout } = useContext(AuthContext);
+  const { token, userId, userName, logout } = useContext(AuthContext);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -78,7 +78,10 @@ const UtilityProviderDashboard = () => {
         <div className="sticky top-0 z-10 bg-[#1A1A1A] border-b border-[#404040]">
           <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
             <div className="flex justify-between items-center">
-              <h1 className="text-white text-3xl font-bold">Utility Provider Dashboard</h1>
+              <div>
+                <h1 className="text-white text-3xl font-bold">{userName}</h1>
+                <p className="text-gray-400 mt-1">Utility Provider Dashboard</p>
+              </div>
               
               {/* Action Buttons */}
               <div className="flex items-center gap-4">

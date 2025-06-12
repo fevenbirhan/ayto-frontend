@@ -39,7 +39,7 @@ interface HelpRequestFormData {
 }
 
 const MaintenanceTeamDashboard = () => {
-  const { token, userId, logout } = useContext(AuthContext);
+  const { token, userId, userName, logout } = useContext(AuthContext);
   const { toast } = useToast();
   const [assignedReports, setAssignedReports] = useState<Report[]>([]);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
@@ -228,9 +228,9 @@ const MaintenanceTeamDashboard = () => {
           <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-white text-3xl font-bold">Maintenance Team Dashboard</h1>
+                <h1 className="text-white text-3xl font-bold">{userName}</h1>
                 {teamInfo && (
-                  <p className="text-gray-400 mt-1">{teamInfo.name}</p>
+                  <p className="text-gray-400 mt-1">Maintenance Team - {teamInfo.name}</p>
                 )}
               </div>
               
