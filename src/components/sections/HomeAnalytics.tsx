@@ -61,8 +61,8 @@ const translations = {
     fromLastMonth: "ካለፈው ወር",
     resolutionRate: "የፍትህ መጠን",
     requireAttention: "ትኩረት ያስፈልጋል",
-    monthlyReports: "ወርሃዊ �ሪፖርቶች",
-    reportsByCategory: "በምድብ የተከፋፈሉ �ሪፖርቶች",
+    monthlyReports: "ወርሃዊ ሪፖርቶች",
+    reportsByCategory: "በምድብ የተከፋፈሉ ሪፖርቶች",
     reports: "ሪፖርቶች",
     waterIssues: "የውሃ ጉዳዮች",
     roadDamage: "የመንገድ ጉዳት",
@@ -361,4 +361,4 @@ export const HomeAnalytics = () => {
       </div>
     </motion.section>
   );
-};
+}; 

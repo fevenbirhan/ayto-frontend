@@ -5,7 +5,6 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/sections/Hero";
 import { Features } from "@/components/sections/Features";
-import { HomeAnalytics } from "@/components/sections/HomeAnalytics";
 import { PageContent } from "@/components/layout/PageContent";
 import { Sun, Moon, Languages } from "lucide-react";
 import { motion } from "framer-motion";
@@ -85,20 +84,10 @@ const Index = () => {
         >
           <Features  />
         </motion.div>
-
-        <motion.section
-          id="analytics"
-          className="scroll-mt-20"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-        >
-          <HomeAnalytics  />
-        </motion.section>
       </PageContent>
 
       {/* Footer */}
-      <Footer text={t.footerText} />
+      <Footer text={t.footerText} darkMode={darkMode} />
     </div>
   );
 };
