@@ -15,6 +15,8 @@ export const Hero = () => {
       navigate("/government-dashboard");
     } else if (userRole === "RESIDENT") {
       navigate("/resident-dashboard");
+    }else if (userRole=== "ADMIN") {
+      navigate("../adminDashboard"); // Ensure this route exists
     }
   };
 
