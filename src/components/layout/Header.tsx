@@ -31,7 +31,7 @@ const translations = {
     analytics: "Analytics",
     dashboard: "Dashboard",
     reports: "Reports",
-    feedback: "Feedback",
+    discussion: "Discussion",
     support: "Support",
     login: "Login",
     signUp: "Sign Up",
@@ -49,7 +49,7 @@ const translations = {
     analytics: "ትንታኔ",
     dashboard: "ዳሽቦርድ",
     reports: "ሪፖርቶች",
-    feedback: "ግብረመልስ",
+    discussion: "ግብረመልስ",
     support: "ድጋፍ",
     login: "ግባ",
     signUp: "ይመዝገቡ",
@@ -84,7 +84,7 @@ export const Header = () => {
   const residentNavItems = [
     { label: t.dashboard, href: "/resident-dashboard" },
     { label: t.reports, href: "/my-reports" },
-    { label: t.feedback, href: "/feedback" },
+    { label: t.discussion, href: "/feedback" },
     { label: t.support, href: "/help-support" },
   ];
 
