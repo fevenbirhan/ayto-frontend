@@ -70,23 +70,89 @@ interface ResetPasswordRequest {
     confirmPassword: string;
 }
 
-export const authService = {
-    login: async (data: LoginData): Promise<AuthResponse> => {
-        try {
-            const response = await axios.post<AuthResponse>(`${API_URL}/login`, data);
-            
-            // Store the token and role in localStorage
-            if (response.data.token) {
-                localStorage.setItem('token', response.data.token);
-                localStorage.setItem('role', response.data.role);
-                localStorage.setItem('userId', response.data.userId);
-                localStorage.setItem('accountStatus', response.data.accountStatus);
-            }
+interface ChangePasswordData {
+    currentPassword?: string;
+    newPassword: string;
+    confirmPassword?: string;
+}
 
+export const authService = {
+    getHeaders(token: string) {
+        return {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+        };
+    },
+
+    handleError(error: any) {
+        if (error.response?.data?.message) {
+            throw new Error(error.response.data.message);
+        }
+        throw new Error('An error occurred while processing your request.');
+    },
+
+    async login(data: LoginData) {
+        try {
+            const response = await axios.post(`${API_URL}/login`, data);
             return response.data;
         } catch (error: any) {
-            console.error('Login error:', error.response?.data);
-            throw error;
+            throw this.handleError(error);
+        }
+    },
+
+    logout() {
+        // Any cleanup needed for logout
+    },
+
+    async changeResidentPassword(userId: string, data: ChangePasswordData, token: string) {
+        try {
+            const response = await axios.put(
+                `${AYTO_URL}/residents/${userId}/password`,
+                data,
+                { headers: this.getHeaders(token) }
+            );
+            return response.data;
+        } catch (error: any) {
+            throw this.handleError(error);
+        }
+    },
+
+    async changeGovernmentPassword(userId: string, data: ChangePasswordData, token: string) {
+        try {
+            const response = await axios.put(
+                `${AYTO_URL}/government-offices/${userId}/change-password`,
+                { newPassword: data.newPassword },
+                { headers: this.getHeaders(token) }
+            );
+            return response.data;
+        } catch (error: any) {
+            throw this.handleError(error);
+        }
+    },
+
+    async changeUtilityProviderPassword(userId: string, data: ChangePasswordData, token: string) {
+        try {
+            const response = await axios.put(
+                `${AYTO_URL}/utility-provider/${userId}/change-password`,
+                { newPassword: data.newPassword },
+                { headers: this.getHeaders(token) }
+            );
+            return response.data;
+        } catch (error: any) {
+            throw this.handleError(error);
+        }
+    },
+
+    async changeMaintenanceTeamPassword(userId: string, data: ChangePasswordData, token: string) {
+        try {
+            const response = await axios.put(
+                `${API_URL}/maintenance-teams/${userId}/change-password`,
+                { newPassword: data.newPassword },
+                { headers: this.getHeaders(token) }
+            );
+            return response.data;
+        } catch (error: any) {
+            throw this.handleError(error);
         }
     },
 
@@ -188,16 +254,6 @@ export const authService = {
             accountStatus: 'ACTIVE'
         };
         return axios.post(`${AYTO_URL}/residents/signup`, fullData);
-    },
-
-    logout: () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('role');
-        localStorage.removeItem('userId');
-        localStorage.removeItem('accountStatus');
-        localStorage.removeItem('verifiedEmail');
-        localStorage.removeItem('emailVerificationType');
-        localStorage.removeItem('emailVerificationTimestamp');
     },
 
     // New OTP methods

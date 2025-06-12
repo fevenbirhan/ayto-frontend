@@ -12,6 +12,7 @@ import { Key, X } from "lucide-react";
 import { ChangePasswordForm } from "./ChangePasswordForm";
 import { useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/context/AuthContext";
+
 interface ChangePasswordDialogProps {
   buttonText?: string;
 }
@@ -19,23 +20,27 @@ interface ChangePasswordDialogProps {
 export const ChangePasswordDialog = ({ buttonText }: ChangePasswordDialogProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { theme } = useTheme();
-  const { language } = useAuth();
+  const { language, userRole } = useAuth();
 
   // Translations
   const translations = {
     en: {
       title: "Change Password",
-      description: "Enter your current and new password below",
-      buttonText: "Change Password",
+      description: userRole === "RESIDENT" 
+        ? "Enter your current password and choose a new password"
+        : "Enter your new password below",
+      buttonText: buttonText || "Change Password",
       cancel: "Cancel",
-      submit: "Submit"
+      submit: "Update Password"
     },
     am: {
       title: "የይለፍ ቃል ይቀይሩ",
-      description: "አሁን ያለዎትን እና አዲሱን የይለፍ ቃል ከዚህ በታች ያስገቡ",
-      buttonText: "የይለፍ ቃል ይቀይሩ",
+      description: userRole === "RESIDENT"
+        ? "አሁን ያለዎትን የይለፍ ቃል ያስገቡ እና አዲስ የይለፍ ቃል ይምረጡ"
+        : "አዲሱን የይለፍ ቃል ከዚህ በታች ያስገቡ",
+      buttonText: buttonText || "የይለፍ ቃል ይቀይሩ",
       cancel: "ይቅር",
-      submit: "አስገባ"
+      submit: "አዘምን"
     }
   };
 
@@ -58,7 +63,7 @@ export const ChangePasswordDialog = ({ buttonText }: ChangePasswordDialogProps) 
         </Button>
       </DialogTrigger>
       <DialogContent
-        className={`sm:max-w-[425px] rounded-lg ${theme === 'dark' ? 'dark' : ''}`}
+        className={`sm:max-w-[425px] rounded-lg ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
         onInteractOutside={(e) => e.preventDefault()}
       >
         <div className="relative">
@@ -72,17 +77,20 @@ export const ChangePasswordDialog = ({ buttonText }: ChangePasswordDialogProps) 
           </Button>
 
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-foreground">
+            <DialogTitle className={`text-xl font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               {t.title}
             </DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground mt-2">
+            <DialogDescription className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'} mt-2`}>
               {t.description}
             </DialogDescription>
           </DialogHeader>
 
           <div className="mt-6">
             <ChangePasswordForm
-              onSuccess={() => setDialogOpen(false)}
+              onSuccess={() => {
+                setDialogOpen(false);
+                // You might want to show a success toast here
+              }}
               onCancel={() => setDialogOpen(false)}
               cancelText={t.cancel}
               submitText={t.submit}
