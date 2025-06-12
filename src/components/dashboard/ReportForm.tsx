@@ -314,7 +314,7 @@ export const ReportForm = ({ onSubmitSuccess, reportToEdit, mode = 'create' }: R
                 type="button" 
                 variant="outline" 
                 onClick={onSubmitSuccess}
-                className="border-[#404040] text-white hover:bg-[#404040]"
+                className="border-[#404040] text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-[#404040]"
                 disabled={isSubmitting}
               >
                 Cancel

@@ -20,6 +20,7 @@ const ResidentDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showReportForm, setShowReportForm] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Translations
   const translations = {
@@ -50,7 +51,6 @@ const ResidentDashboard = () => {
   useEffect(() => {
     const initializeDashboard = async () => {
       try {
-        // Add any initialization logic here (e.g., fetching initial data)
         setIsLoading(false);
       } catch (error) {
         console.error("Error initializing dashboard:", error);
@@ -65,6 +65,10 @@ const ResidentDashboard = () => {
 
     initializeDashboard();
   }, [toast, t.errorTitle, t.errorMessage]);
+
+  const handleReportCreated = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   if (isLoading) {
     return (
@@ -99,7 +103,7 @@ const ResidentDashboard = () => {
                 <Input
                   type="search"
                   placeholder={t.searchPlaceholder}
-                  className={`pl-10 ${theme === 'dark' ? 'bg-gray-800 text-white border-gray-700 focus:border-blue-500' : 'bg-white text-gray-900 border-gray-300 focus:border-blue-500'}`}
+                  className={`pl-10 ${theme === 'dark' ? 'bg-gray-800 text-white border-gray-700' : 'bg-white text-gray-900 border-gray-300'} focus:border-blue-500`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -117,14 +121,19 @@ const ResidentDashboard = () => {
                 {/* Report Form Modal */}
                 {showReportForm && (
                   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                    <div className={`p-6 rounded-2xl w-full max-w-2xl shadow-lg relative animate-fade-in ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+                    <div className={`p-6 rounded-2xl w-full max-w-2xl shadow-lg relative ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
                       <button
                         className={`absolute top-4 right-4 ${theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-500 hover:text-gray-700'}`}
                         onClick={() => setShowReportForm(false)}
                       >
                         {t.close}
                       </button>
-                      <ReportForm onSubmitSuccess={() => setShowReportForm(false)} />
+                      <ReportForm
+                        onSubmitSuccess={() => {
+                          setShowReportForm(false);
+                          handleReportCreated();
+                        }}
+                      />
                     </div>
                   </div>
                 )}
@@ -136,10 +145,15 @@ const ResidentDashboard = () => {
 
           {/* Reports Section */}
           <div className="mb-8">
-            <h2 className={`text-xl font-semibold mb-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-700'}`}>
+            <h2 className={`text-xl font-semibold mb-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
               {t.reportsSectionTitle}
             </h2>
-            <CommunityReportsCards searchQuery={searchQuery} isPersonal={false} />
+            <div className={theme === 'dark' ? 'bg-[#18230F]' : 'bg-white'}>
+              <CommunityReportsCards
+                searchQuery={searchQuery}
+                isPersonal={false}
+              />
+            </div>
           </div>
         </div>
       </PageContent>

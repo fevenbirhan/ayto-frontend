@@ -43,24 +43,24 @@ export const Footer = ({ text, darkMode, language = 'en' }: FooterProps) => {
   };
 
   return (
-    <footer className={`w-full py-12 ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'} border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
+    <footer className={`w-full py-6 mt-auto ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'} border-t ${theme === 'dark' ? 'border-gray-800' : 'border-gray-200'}`}>
       <div className="container mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Brand Section */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <div className="text-3xl font-bold tracking-tighter">
+              <div className="text-2xl font-bold tracking-tighter">
                 <span className="text-primary">AY</span>
                 <span className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>TO</span>
               </div>
-              <div className={`w-8 h-8 rounded-full ${theme === 'dark' ? 'bg-primary/90' : 'bg-primary'} flex items-center justify-center`}>
+              <div className={`w-7 h-7 rounded-full ${theme === 'dark' ? 'bg-primary/90' : 'bg-primary'} flex items-center justify-center`}>
                 <span className="text-white font-bold text-sm">A</span>
               </div>
             </div>
             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
               {t.allRights}
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <a
                 href="https://facebook.com"
                 target="_blank"
@@ -92,8 +92,8 @@ export const Footer = ({ text, darkMode, language = 'en' }: FooterProps) => {
           </div>
 
           {/* Contacts Section */}
-          <div className="space-y-4">
-            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+          <div className="space-y-3">
+            <h3 className={`text-base font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               {t.contacts}
             </h3>
             <div className="space-y-2">
@@ -115,8 +115,8 @@ export const Footer = ({ text, darkMode, language = 'en' }: FooterProps) => {
           </div>
 
           {/* Services Section */}
-          <div className="space-y-4">
-            <h3 className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+          <div className="space-y-3">
+            <h3 className={`text-base font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               {t.services}
             </h3>
             <div className="space-y-2">
@@ -138,7 +138,7 @@ export const Footer = ({ text, darkMode, language = 'en' }: FooterProps) => {
         </div>
 
         {/* Copyright */}
-        <div className={`mt-12 pt-6 border-t ${theme === 'dark' ? 'border-gray-800 text-gray-400' : 'border-gray-200 text-gray-500'} text-sm text-center`}>
+        <div className={`mt-6 pt-4 border-t ${theme === 'dark' ? 'border-gray-800 text-gray-400' : 'border-gray-200 text-gray-500'} text-sm text-center`}>
           {t.allRights}
         </div>
       </div>

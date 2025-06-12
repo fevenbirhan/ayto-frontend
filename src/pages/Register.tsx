@@ -96,11 +96,6 @@ const Register = () => {
   // Check for verified email on component mount
   useEffect(() => {
     if (!verifiedEmail || !authService.isEmailVerified(verifiedEmail, userType)) {
-      toast({
-        title: t.verificationRequired,
-        description: t.verificationDescription,
-        variant: "destructive",
-      });
       navigate("/verify-email");
       return;
     }
@@ -110,11 +105,24 @@ const Register = () => {
       ...prev,
       email: verifiedEmail
     }));
-  }, [verifiedEmail, userType, navigate, toast, t]);
+  }, [verifiedEmail, userType, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate phone number format
+    const phoneNumber = formData.phoneNumber;
+    const isValidFormat = /^(\+2519|09)\d{8}$/.test(phoneNumber);
+    
+    if (!isValidFormat) {
+      toast({
+        title: t.error,
+        description: "Phone number must start with +2519 or 09 followed by 8 digits (e.g., +251912345678 or 0912345678)",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Double check email verification
     if (!authService.isEmailVerified(formData.email, userType)) {
       toast({
@@ -376,7 +384,7 @@ const Register = () => {
           </div>
         </div>
       </main>
-      <Footer />
+      <Footer text="© 2024 Community Reports. All rights reserved." darkMode={theme === "dark"} />
     </div>
   );
 };
