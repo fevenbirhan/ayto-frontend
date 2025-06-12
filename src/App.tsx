@@ -20,6 +20,9 @@ import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 import MaintenanceTeamDashboard from "./components/maintenance-team/MaintenanceTeamDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import ResidentDetail from "./pages/ResidentDetail";
+import GovernmentOfficeDetail from "./pages/GovernmentOfficeDetail";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +56,11 @@ const App = () => (
                 </Route>
                 <Route element={<ProtectedRoute allowedRoles={["MAINTENANCE_TEAM"]} />}>
                   <Route path="/maintenance-team-dashboard" element={<MaintenanceTeamDashboard />} />
+                </Route>
+                <Route>
+                  <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/admin/resident/:id" element={<ResidentDetail />} />
+                  <Route path="/admin/office/:id" element={<GovernmentOfficeDetail />} />
                 </Route>
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
