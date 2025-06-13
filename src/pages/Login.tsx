@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTheme } from "@/components/ThemeProvider";
@@ -14,6 +14,9 @@ import { ForgotPasswordDialog } from "@/components/layout/ForgotPasswordDialog";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Icons } from "@/components/ui/icons";
 import { fadeIn, staggerContainer } from "@/lib/motion1";
+import { AuthResponse } from "@/types/authTypes";
+import { authService } from "@/services/auth";
+import { Role } from "@/services/employee";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -21,7 +24,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { login, isAuthenticated, userRole, language, setLanguage } = useAuth();
+  const { login, logout, language, setLanguage } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
   // Translations including Amharic
@@ -71,51 +74,85 @@ const Login = () => {
     setIsLoading(true);
 
     try {
+      // Get the response from the auth service first to check status
+      const response = await authService.login({ email, password }) as AuthResponse;
+      
+      // Handle government users' first login
+      if (response.role === 'GOVERNMENT_OFFICE' && response.accountStatus === 'PENDING') {
+        toast({
+          title: t.toastErrorTitle,
+          description: "Your account is pending approval by an administrator.",
+          variant: "destructive"
+        });
+        navigate("/pending-approval");
+        return;
+      }
+
+      // Check if the account is active for all roles
+      if (response.accountStatus !== 'ACTIVE') {
+        toast({
+          title: t.toastErrorTitle,
+          description: "Your account is not active. Please contact the administrator.",
+          variant: "destructive"
+        });
+        navigate("/pending-approval");
+        return;
+      }
+
+      // If account is active, proceed with login
       await login(email, password);
+
+      // Show success message
       toast({
         title: t.toastSuccessTitle,
         description: t.toastSuccessDescription
       });
+
+      // Navigate to the correct dashboard based on role
+      switch(response.role as Role) {
+        case 'GOVERNMENT_OFFICE':
+          navigate("/government-dashboard");
+          break;
+        case 'RESIDENT':
+          navigate("/resident-dashboard");
+          break;
+        case 'UTILITY_PROVIDER':
+          navigate("/utility-provider-dashboard");
+          break;
+        case 'MAINTENANCE_TEAM':
+        case 'EMPLOYEE':  // Handle both role types for maintenance team members
+          navigate("/maintenance-team-dashboard");
+          break;
+        case 'ADMIN':
+          navigate("/admin");
+          break;
+        default:
+          console.error('Unknown role:', response.role);
+          navigate("/");
+      }
     } catch (error: any) {
       console.error('Login error:', error);
       const errorMessage = error.response?.data?.message || t.invalidCredentials;
       
-      toast({
-        title: t.toastErrorTitle,
-        description: errorMessage,
-        variant: "destructive"
-      });
+      // Handle specific error cases
+      if (error.response?.status === 404) {
+        toast({
+          title: t.toastErrorTitle,
+          description: "Account not found. Please check your credentials or register.",
+          variant: "destructive"
+        });
+        navigate("/");
+      } else {
+        toast({
+          title: t.toastErrorTitle,
+          description: errorMessage,
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (isAuthenticated && userRole) {
-      const accountStatus = localStorage.getItem("accountStatus");
-      
-      if (accountStatus !== 'ACTIVE') {
-        navigate("/pending-approval");
-      } else {
-        switch(userRole.toUpperCase()) {
-          case 'GOVERNMENT_OFFICE':
-            navigate("/government-dashboard");
-            break;
-          case 'RESIDENT':
-            navigate("/resident-dashboard?tab=community");
-            break;
-          case 'UTILITY_PROVIDER':
-            navigate("/utility-provider-dashboard");
-            break;
-          case 'MAINTENANCE_TEAM':
-            navigate("/maintenance-team-dashboard");
-            break;
-          default:
-            navigate("/");
-        }
-      }
-    }
-  }, [isAuthenticated, userRole, navigate]);
 
   return (
     <motion.div
@@ -235,7 +272,7 @@ const Login = () => {
           </motion.div>
         </div>
       </PageContent>
-      <Footer />
+      <Footer text="© 2024 AYTO. All rights reserved." darkMode={theme === 'dark'} />
     </motion.div>
   );
 };

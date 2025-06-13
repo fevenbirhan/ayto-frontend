@@ -30,6 +30,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface HelpRequestFormData {
   requiredSkills: string;
@@ -40,6 +41,7 @@ interface HelpRequestFormData {
 
 const MaintenanceTeamDashboard = () => {
   const { token, userId, userName, logout } = useContext(AuthContext);
+  const { theme } = useTheme();
   const { toast } = useToast();
   const [assignedReports, setAssignedReports] = useState<Report[]>([]);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
@@ -220,24 +222,28 @@ const MaintenanceTeamDashboard = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#1A1A1A]">
+    <div className={`flex flex-col min-h-screen ${theme === 'dark' ? 'bg-background' : 'bg-gray-50'}`}>
       <Header />
       <main className="flex-1">
         {/* Sticky Header Section */}
-        <div className="sticky top-0 z-10 bg-[#1A1A1A] border-b border-[#404040]">
+        <div className={`sticky top-0 z-10 ${theme === 'dark' ? 'bg-background' : 'bg-white'} border-b`}>
           <div className="max-w-7xl mx-auto px-4 md:px-6 py-4">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-white text-3xl font-bold">{userName}</h1>
+                <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                  {userName}
+                </h1>
                 {teamInfo && (
-                  <p className="text-gray-400 mt-1">Maintenance Team - {teamInfo.name}</p>
+                  <p className={`mt-1 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Maintenance Team - {teamInfo.name}
+                  </p>
                 )}
               </div>
               
               <div className="flex items-center gap-4">
                 <Button 
                   variant="ghost" 
-                  className="relative p-2 text-white hover:bg-[#2D2D2D] rounded-full"
+                  className={`relative p-2 ${theme === 'dark' ? 'text-white hover:bg-accent' : 'text-gray-700 hover:bg-gray-100'} rounded-full`}
                 >
                   <Bell className="h-5 w-5" />
                 </Button>
@@ -246,19 +252,19 @@ const MaintenanceTeamDashboard = () => {
                   <DropdownMenuTrigger asChild>
                     <Button 
                       variant="ghost" 
-                      className="p-2 text-white hover:bg-[#2D2D2D] rounded-full"
+                      className={`p-2 ${theme === 'dark' ? 'text-white hover:bg-accent' : 'text-gray-700 hover:bg-gray-100'} rounded-full`}
                     >
                       <User className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 bg-[#2D2D2D] text-white border-[#404040]">
-                    <DropdownMenuItem className="hover:bg-[#404040] cursor-pointer">
+                  <DropdownMenuContent align="end" className={`w-56 ${theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white text-gray-900 border-gray-200'}`}>
+                    <DropdownMenuItem className={`${theme === 'dark' ? 'hover:bg-accent' : 'hover:bg-gray-100'} cursor-pointer`}>
                       <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-[#404040]" />
+                    <DropdownMenuSeparator className={theme === 'dark' ? 'bg-border' : 'bg-gray-200'} />
                     <DropdownMenuItem 
-                      className="text-red-400 hover:bg-[#404040] cursor-pointer"
+                      className={`text-destructive hover:${theme === 'dark' ? 'bg-accent' : 'bg-gray-100'} cursor-pointer`}
                       onClick={handleLogout}
                     >
                       <LogOut className="mr-2 h-4 w-4" />
@@ -275,48 +281,52 @@ const MaintenanceTeamDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
                 Assigned Reports ({assignedReports.length})
               </h2>
             </div>
 
             {loading ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
-                <p className="text-gray-400 mt-4">Loading reports...</p>
+                <div className={`animate-spin rounded-full h-8 w-8 border-b-2 ${theme === 'dark' ? 'border-white' : 'border-gray-900'} mx-auto`}></div>
+                <p className={`mt-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Loading reports...</p>
               </div>
             ) : assignedReports.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-400">No reports assigned to your team.</p>
+                <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>No reports assigned to your team.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {assignedReports.map((report) => (
-                  <Card key={report.id} className="bg-[#1E2A13] border-[#255F38] text-white">
+                  <Card key={report.id} className={theme === 'dark' ? 'bg-card text-card-foreground border-border' : 'bg-white border-gray-200'}>
                     <CardContent className="p-4 space-y-4">
                       <div className="flex justify-between items-start">
-                        <h3 className="text-lg font-semibold line-clamp-2">{report.title}</h3>
+                        <h3 className={`text-lg font-semibold line-clamp-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                          {report.title}
+                        </h3>
                         <Badge className={getStatusBadgeClass(report.status)}>
                           {report.status}
                         </Badge>
                       </div>
 
                       <div>
-                        <span className="px-2 py-1 bg-[#2A3B1C] rounded-md text-sm">
+                        <span className={`px-2 py-1 rounded-md text-sm ${theme === 'dark' ? 'bg-accent text-accent-foreground' : 'bg-gray-100 text-gray-900'}`}>
                           {report.category}
                         </span>
                       </div>
 
-                      <p className="text-sm line-clamp-3">{report.description}</p>
+                      <p className={`text-sm line-clamp-3 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {report.description}
+                      </p>
 
-                      <div className="text-sm text-white/70">
+                      <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                         <div className="flex items-center gap-1">
                           <MapPin className="h-4 w-4" />
                           {report.locationName || report.location}
                         </div>
                       </div>
 
-                      <div className="flex justify-between items-center text-sm text-white/50 pt-2 border-t border-white/10">
+                      <div className="flex justify-between items-center text-sm text-gray-500 pt-2 border-t border-gray-200">
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
                           {formatDate(report.createdAt)}
@@ -324,7 +334,7 @@ const MaintenanceTeamDashboard = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-white border-[#255F38] hover:bg-[#255F38]/20"
+                          className={`text-gray-500 border-gray-200 hover:bg-gray-100 ${theme === 'dark' ? 'hover:bg-accent' : ''}`}
                           onClick={() => {
                             setSelectedReport(report);
                             setIsStatusDialogOpen(true);
@@ -336,7 +346,7 @@ const MaintenanceTeamDashboard = () => {
 
                       <div className="flex gap-2 mt-4">
                         <Button
-                          className="flex-1 bg-purple-600 hover:bg-purple-700"
+                          className={`flex-1 bg-purple-600 hover:bg-purple-700 ${theme === 'dark' ? 'bg-accent text-accent-foreground' : ''}`}
                           onClick={() => {
                             setSelectedReport(report);
                             setIsHelpRequestDialogOpen(true);
@@ -345,7 +355,7 @@ const MaintenanceTeamDashboard = () => {
                           Request Help
                         </Button>
                         <Button
-                          className="flex-1 bg-red-600 hover:bg-red-700"
+                          className={`flex-1 bg-red-600 hover:bg-red-700 ${theme === 'dark' ? 'bg-accent text-accent-foreground' : ''}`}
                           onClick={() => handleRejectReport(report.id)}
                         >
                           Reject
@@ -361,7 +371,7 @@ const MaintenanceTeamDashboard = () => {
       </main>
 
       <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
-        <DialogContent className="bg-[#1E2A13] text-white border-[#255F38]">
+        <DialogContent className={`bg-background text-white border-border`}>
           <DialogHeader>
             <DialogTitle>Update Report Status</DialogTitle>
           </DialogHeader>
@@ -378,7 +388,7 @@ const MaintenanceTeamDashboard = () => {
                   <div className="grid grid-cols-1 gap-2">
                     <Button
                       variant="outline"
-                      className={`justify-start ${selectedReport.status === 'IN_PROGRESS' ? 'bg-[#255F38]/20' : ''}`}
+                      className={`justify-start ${selectedReport.status === 'IN_PROGRESS' ? 'bg-accent' : ''}`}
                       onClick={() => handleStatusUpdate(selectedReport.id, 'IN_PROGRESS')}
                       disabled={isUpdatingStatus}
                     >
@@ -387,7 +397,7 @@ const MaintenanceTeamDashboard = () => {
                     </Button>
                     <Button
                       variant="outline"
-                      className={`justify-start ${selectedReport.status === 'HELP_REQUESTED' ? 'bg-[#255F38]/20' : ''}`}
+                      className={`justify-start ${selectedReport.status === 'HELP_REQUESTED' ? 'bg-accent' : ''}`}
                       onClick={() => handleStatusUpdate(selectedReport.id, 'HELP_REQUESTED')}
                       disabled={isUpdatingStatus}
                     >
@@ -396,7 +406,7 @@ const MaintenanceTeamDashboard = () => {
                     </Button>
                     <Button
                       variant="outline"
-                      className={`justify-start ${selectedReport.status === 'RESOLVED' ? 'bg-[#255F38]/20' : ''}`}
+                      className={`justify-start ${selectedReport.status === 'RESOLVED' ? 'bg-accent' : ''}`}
                       onClick={() => handleStatusUpdate(selectedReport.id, 'RESOLVED')}
                       disabled={isUpdatingStatus}
                     >
@@ -405,7 +415,7 @@ const MaintenanceTeamDashboard = () => {
                     </Button>
                     <Button
                       variant="outline"
-                      className={`justify-start ${selectedReport.status === 'REJECTED' ? 'bg-[#255F38]/20' : ''}`}
+                      className={`justify-start ${selectedReport.status === 'REJECTED' ? 'bg-accent' : ''}`}
                       onClick={() => handleStatusUpdate(selectedReport.id, 'REJECTED')}
                       disabled={isUpdatingStatus}
                     >
@@ -422,7 +432,7 @@ const MaintenanceTeamDashboard = () => {
 
       {/* Help Request Dialog */}
       <Dialog open={isHelpRequestDialogOpen} onOpenChange={setIsHelpRequestDialogOpen}>
-        <DialogContent className="bg-[#1E2A13] text-white border-[#255F38]">
+        <DialogContent className={`bg-background text-white border-border`}>
           <DialogHeader>
             <DialogTitle>Request Help</DialogTitle>
           </DialogHeader>
@@ -431,7 +441,7 @@ const MaintenanceTeamDashboard = () => {
               <label className="text-sm font-medium">Required Skills</label>
               <input
                 type="text"
-                className="w-full mt-1 bg-[#2A3B1C] border-[#255F38] rounded-md"
+                className={`w-full mt-1 bg-accent border-border rounded-md ${theme === 'dark' ? 'bg-accent text-accent-foreground' : ''}`}
                 value={helpRequestData.requiredSkills}
                 onChange={(e) => setHelpRequestData(prev => ({ ...prev, requiredSkills: e.target.value }))}
               />
@@ -440,7 +450,7 @@ const MaintenanceTeamDashboard = () => {
               <label className="text-sm font-medium">Work Location</label>
               <input
                 type="text"
-                className="w-full mt-1 bg-[#2A3B1C] border-[#255F38] rounded-md"
+                className={`w-full mt-1 bg-accent border-border rounded-md ${theme === 'dark' ? 'bg-accent text-accent-foreground' : ''}`}
                 value={helpRequestData.workLocation}
                 onChange={(e) => setHelpRequestData(prev => ({ ...prev, workLocation: e.target.value }))}
               />
@@ -449,7 +459,7 @@ const MaintenanceTeamDashboard = () => {
               <label className="text-sm font-medium">Required Capacity</label>
               <input
                 type="number"
-                className="w-full mt-1 bg-[#2A3B1C] border-[#255F38] rounded-md"
+                className={`w-full mt-1 bg-accent border-border rounded-md ${theme === 'dark' ? 'bg-accent text-accent-foreground' : ''}`}
                 value={helpRequestData.requiredCapacity}
                 onChange={(e) => setHelpRequestData(prev => ({ ...prev, requiredCapacity: parseInt(e.target.value) || 0 }))}
               />
@@ -457,14 +467,14 @@ const MaintenanceTeamDashboard = () => {
             <div>
               <label className="text-sm font-medium">Additional Notes</label>
               <textarea
-                className="w-full mt-1 bg-[#2A3B1C] border-[#255F38] rounded-md"
+                className={`w-full mt-1 bg-accent border-border rounded-md ${theme === 'dark' ? 'bg-accent text-accent-foreground' : ''}`}
                 value={helpRequestData.additionalNotes}
                 onChange={(e) => setHelpRequestData(prev => ({ ...prev, additionalNotes: e.target.value }))}
                 rows={4}
               />
             </div>
             <Button
-              className="w-full bg-[#255F38] hover:bg-[#255F38]/80"
+              className={`w-full bg-accent hover:bg-accent/80 ${theme === 'dark' ? 'bg-accent text-accent-foreground' : ''}`}
               onClick={() => selectedReport && handleRequestHelp(selectedReport.id)}
             >
               Submit Help Request
@@ -473,7 +483,7 @@ const MaintenanceTeamDashboard = () => {
         </DialogContent>
       </Dialog>
 
-      <Footer text="© 2024 AYTO. All rights reserved." darkMode={true} />
+      <Footer text="© 2024 AYTO. All rights reserved." darkMode={theme === 'dark'} />
     </div>
   );
 };
