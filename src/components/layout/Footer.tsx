@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/context/AuthContext";
-import { Facebook, Instagram, Twitter, Mail, Phone } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 interface FooterProps {
   text: string;
   darkMode: boolean;
@@ -19,14 +19,14 @@ export const Footer = ({ text, darkMode, language = 'en' }: FooterProps) => {
       services: "Services",
       home: "Home",
       features: "Features",
-      allRights: "© 2023 AYTO. All rights reserved",
+      allRights: "© 2023 AYTO.",
     },
     am: {
       contacts: "አድራሻዎች",
       services: "አገልግሎቶች",
       home: "መነሻ",
       features: "ባህሪያት",
-      allRights: "© 2023 አይቶ. መብቶች የተጠበቁ ናቸው",
+      allRights: "© 2023 አይቶ.",
     }
   };
 
@@ -60,35 +60,6 @@ export const Footer = ({ text, darkMode, language = 'en' }: FooterProps) => {
             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
               {t.allRights}
             </p>
-            <div className="flex gap-3">
-              <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`p-2 rounded-full ${theme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}
-                aria-label="Facebook"
-              >
-                <Facebook className={`h-5 w-5 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`} />
-              </a>
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`p-2 rounded-full ${theme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}
-                aria-label="Instagram"
-              >
-                <Instagram className={`h-5 w-5 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`} />
-              </a>
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`p-2 rounded-full ${theme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'} transition-colors`}
-                aria-label="Twitter"
-              >
-                <Twitter className={`h-5 w-5 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`} />
-              </a>
-            </div>
           </div>
 
           {/* Contacts Section */}
@@ -105,11 +76,25 @@ export const Footer = ({ text, darkMode, language = 'en' }: FooterProps) => {
                 <span>+251 961236545</span>
               </a>
               <a
-                href="mailto:Name@gmail.com"
+                href="tel:+251925252843"
+                className={`flex items-center gap-2 ${theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
+              >
+                <Phone className="h-5 w-5 text-primary" />
+                <span>+251 925252843</span>
+              </a>
+              <a
+                href="mailto:kebedefiker11@gmail.com"
                 className={`flex items-center gap-2 ${theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
               >
                 <Mail className="h-5 w-5 text-primary" />
-                <span>Name@gmail.com</span>
+                <span>kebedefiker11@gmail.com</span>
+              </a>
+              <a
+                href="mailto:admassuhenok123@gmail.com"
+                className={`flex items-center gap-2 ${theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'} transition-colors`}
+              >
+                <Mail className="h-5 w-5 text-primary" />
+                <span>admassuhenok123@gmail.com</span>
               </a>
             </div>
           </div>
