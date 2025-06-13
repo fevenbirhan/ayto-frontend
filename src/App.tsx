@@ -23,6 +23,7 @@ import MaintenanceTeamDashboard from "./components/maintenance-team/MaintenanceT
 import AdminDashboard from "./pages/AdminDashboard";
 import ResidentDetail from "./pages/ResidentDetail";
 import GovernmentOfficeDetail from "./pages/GovernmentOfficeDetail";
+import PendingApproval from "./pages/PendingApproval";
 
 const queryClient = new QueryClient();
 
@@ -34,38 +35,48 @@ const App = () => (
           <Toaster />
           <Sonner />
           <AuthProvider>
-            
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/verify-email" element={<EmailVerification />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route element={<ProtectedRoute allowedRoles={["RESIDENT"]} />}>
-                  <Route path="/resident-dashboard" element={<ResidentDashboard />} />
-                  <Route path="/my-reports" element={<MyReports />} />
-                  <Route path="/feedback" element={<Feedback />} />
-                  <Route path="/help-support" element={<HelpSupport />} />
-                </Route>
-                <Route element={<ProtectedRoute allowedRoles={["ADMIN", "GOVERNMENT_OFFICE"]} />}>
-                  <Route path="/government-dashboard" element={<GovernmentDashboard />} />
-                  <Route path="/analytics" element={<AnalyticsDashboard />} />
-                </Route>
-                <Route element={<ProtectedRoute allowedRoles={["UTILITY_PROVIDER"]} />}>
-                  <Route path="/utility-provider-dashboard" element={<UtilityProviderDashboard />} />
-                </Route>
-                <Route element={<ProtectedRoute allowedRoles={["MAINTENANCE_TEAM"]} />}>
-                  <Route path="/maintenance-team-dashboard" element={<MaintenanceTeamDashboard />} />
-                </Route>
-                <Route>
-                  <Route path="/admin" element={<AdminDashboard />} />
-                  <Route path="/admin/resident/:id" element={<ResidentDetail />} />
-                  <Route path="/admin/office/:id" element={<GovernmentOfficeDetail />} />
-                </Route>
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/verify-email" element={<EmailVerification />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/pending-approval" element={<PendingApproval />} />
               
+              {/* Resident Routes */}
+              <Route element={<ProtectedRoute allowedRoles={["RESIDENT"]} />}>
+                <Route path="/resident-dashboard/*" element={<ResidentDashboard />} />
+                <Route path="/my-reports" element={<MyReports />} />
+                <Route path="/feedback" element={<Feedback />} />
+                <Route path="/help-support" element={<HelpSupport />} />
+              </Route>
+
+              {/* Government Routes */}
+              <Route element={<ProtectedRoute allowedRoles={["GOVERNMENT_OFFICE"]} />}>
+                <Route path="/government-dashboard/*" element={<GovernmentDashboard />} />
+                <Route path="/analytics" element={<AnalyticsDashboard />} />
+              </Route>
+
+              {/* Utility Provider Routes */}
+              <Route element={<ProtectedRoute allowedRoles={["UTILITY_PROVIDER"]} />}>
+                <Route path="/utility-provider-dashboard/*" element={<UtilityProviderDashboard />} />
+              </Route>
+
+              {/* Maintenance Team Routes */}
+              <Route element={<ProtectedRoute allowedRoles={["EMPLOYEE", "MAINTENANCE_TEAM"]} />}>
+                <Route path="/maintenance-team-dashboard/*" element={<MaintenanceTeamDashboard />} />
+              </Route>
+
+              {/* Admin Routes */}
+              <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+                <Route path="/admin/*" element={<AdminDashboard />} />
+                <Route path="/admin/resident/:id" element={<ResidentDetail />} />
+                <Route path="/admin/office/:id" element={<GovernmentOfficeDetail />} />
+              </Route>
+
+              {/* Catch-all route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
           </AuthProvider>
         </TooltipProvider>
       </ThemeProvider>

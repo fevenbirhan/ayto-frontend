@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'GOVERNMENT_OFFICE' | 'RESIDENT' | 'UTILITY_PROVIDER' | 'EMPLOYEE';
+export type UserRole = 'ADMIN' | 'GOVERNMENT_OFFICE' | 'RESIDENT' | 'UTILITY_PROVIDER' | 'EMPLOYEE' | 'MAINTENANCE_TEAM';
 export type AccountStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING';
 
 export interface AuthResponse {
