@@ -134,7 +134,7 @@ const MyReports = () => {
           </motion.div>
         </div>
       </PageContent>
-      <Footer />
+      <Footer text="© 2024 AYTO. All rights reserved." darkMode={theme === "dark"} />
     </motion.div>
   );
 };
