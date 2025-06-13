@@ -17,11 +17,9 @@ import { Switch } from "@/components/ui/switch";
 import { ChangePasswordDialog } from "./ChangePasswordDialog";
 
 interface HeaderProps {
-  darkMode: boolean;
-  language: 'en' | 'am';
+  onTabChange?: (tab: string) => void;
+  activeTab?: string;
 }
-
-
 
 // Translation dictionary
 const translations = {
@@ -41,7 +39,9 @@ const translations = {
     language: "Language",
     amharic: "አማርኛ",
     english: "English",
-    changePassword: "Change Password"
+    changePassword: "Change Password",
+    createProvider: "Create Provider",
+    manageProviders: "Manage Providers"
   },
   am: {
     home: "መነሻ",
@@ -59,11 +59,13 @@ const translations = {
     language: "ቋንቋ",
     amharic: "አማርኛ",
     english: "English",
-    changePassword: "የይለፍ ቃል ይቀይሩ"
+    changePassword: "የይለፍ ቃል ይቀይሩ",
+    createProvider: "ፕሮቫይደር ይፍጠሩ",
+    manageProviders: "ፕሮቫይደሮችን ያስተዳድሩ"
   }
 };
 
-export const Header = () => {
+export const Header = ({ onTabChange, activeTab }: HeaderProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { isAuthenticated, userName, logout, userRole, language, toggleLanguage } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -87,15 +89,36 @@ export const Header = () => {
     { label: t.support, href: "/help-support" },
   ];
 
+  // Navigation items for government users
+  const governmentNavItems = [
+    { 
+      label: t.analytics, 
+      href: "/government-dashboard",
+      tab: "analytics"
+    },
+    { 
+      label: t.createProvider, 
+      href: "/government-dashboard?tab=create-provider",
+      tab: "create-provider"
+    },
+    { 
+      label: t.manageProviders, 
+      href: "/government-dashboard?tab=manage-providers",
+      tab: "manage-providers"
+    },
+  ];
+
   // Authentication items (Login/SignUp)
   const authNavItems = [
     { label: t.login, href: "/login" },
     { label: t.signUp, href: "/register" },
   ];
 
-  // Determine which navigation items to show based on auth status
-  const navItems = isAuthenticated && userRole === "RESIDENT"
-    ? residentNavItems
+  // Determine which navigation items to show based on auth status and role
+  const navItems = isAuthenticated 
+    ? (userRole === "GOVERNMENT_OFFICE" 
+        ? governmentNavItems 
+        : residentNavItems)
     : publicNavItems;
 
   const handleNavigation = (href: string) => {
@@ -150,17 +173,26 @@ export const Header = () => {
     }
   }, [location]);
 
+  const handleTabClick = (item: typeof governmentNavItems[0]) => {
+    if (onTabChange) {
+      onTabChange(item.tab);
+    } else {
+      navigate(item.href);
+    }
+  };
+
   return (
     <header className="relative fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md shadow-[0_2px_12px_rgba(0,0,0,0.08)] border-b border-border/30 before:content-[''] before:absolute before:-bottom-2 before:left-0 before:right-0 before:h-4 before:rounded-b-[50%] before:bg-background">
-
-
-
       <div className="container mx-auto px-4 sm:px-6">
         <nav className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-2">
             <Link
-              to={isAuthenticated && userRole === "RESIDENT" ? "/resident-dashboard" : "/"}
+              to={isAuthenticated 
+                ? (userRole === "GOVERNMENT_OFFICE" 
+                    ? "/government-dashboard" 
+                    : "/resident-dashboard") 
+                : "/"}
               className="flex items-center gap-2 group"
             >
               <div className="text-3xl font-bold tracking-tighter">
@@ -266,18 +298,33 @@ export const Header = () => {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-2">
-            <div className="flex items-center gap-1 mr-2">
-              {navItems.map((item) => (
-                <Button
-                  key={item.label}
-                  variant={isActiveLink(item.href) ? "secondary" : "ghost"}
-                  onClick={() => handleNavigation(item.href)}
-                  className="rounded-lg px-4 font-medium"
-                >
-                  {item.label}
-                </Button>
-              ))}
-            </div>
+            {userRole === "GOVERNMENT_OFFICE" ? (
+              <div className="flex items-center gap-1 mr-2">
+                {governmentNavItems.map((item) => (
+                  <Button
+                    key={item.label}
+                    variant={activeTab === item.tab ? "secondary" : "ghost"}
+                    onClick={() => handleTabClick(item)}
+                    className="rounded-lg px-4 font-medium"
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 mr-2">
+                {navItems.map((item) => (
+                  <Button
+                    key={item.label}
+                    variant={isActiveLink(item.href) ? "secondary" : "ghost"}
+                    onClick={() => handleNavigation(item.href)}
+                    className="rounded-lg px-4 font-medium"
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </div>
+            )}
 
             <div className="h-8 w-px bg-border mx-2" />
 
@@ -292,20 +339,54 @@ export const Header = () => {
               <span className="sr-only">{t.language}</span>
             </Button>
 
-            {!isAuthenticated ? (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  onClick={toggleTheme}
-                  className="rounded-full w-10 h-10 p-0 text-foreground/70 hover:text-foreground hover:bg-accent/50"
-                >
-                  {theme === 'dark' ? (
-                    <Moon className="h-5 w-5" />
-                  ) : (
-                    <Sun className="h-5 w-5" />
-                  )}
-                </Button>
+            <Button
+              variant="ghost"
+              onClick={toggleTheme}
+              className="rounded-full w-10 h-10 p-0 text-foreground/70 hover:text-foreground hover:bg-accent/50"
+            >
+              {theme === 'dark' ? (
+                <Moon className="h-5 w-5" />
+              ) : (
+                <Sun className="h-5 w-5" />
+              )}
+            </Button>
 
+            {isAuthenticated && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="rounded-lg pl-3 pr-2 h-10 gap-1 hover:bg-accent/50"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <UserCircle2 className="h-5 w-5 text-primary" />
+                      </div>
+                      <span className="font-medium text-foreground">{userName}</span>
+                    </div>
+                    <ChevronDown className="h-4 w-4 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 rounded-xl p-2">
+                  <DropdownMenuItem className="flex flex-col items-start gap-1 cursor-default rounded-lg p-3">
+                    <span className="font-medium text-foreground">{userName}</span>
+                    <span className="text-xs text-muted-foreground">{t.loggedIn}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="opacity-50" />
+                  <ChangePasswordDialog buttonText={t.changePassword} />
+                  <DropdownMenuItem
+                    onClick={logout}
+                    className="cursor-pointer text-destructive rounded-lg p-3 focus:bg-destructive/10"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>{t.logout}</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {!isAuthenticated && (
+              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   onClick={() => handleNavigation("/login")}
@@ -319,52 +400,6 @@ export const Header = () => {
                 >
                   {t.signUp}
                 </Button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  onClick={toggleTheme}
-                  className="rounded-full w-10 h-10 p-0 text-foreground/70 hover:text-foreground hover:bg-accent/50"
-                >
-                  {theme === 'dark' ? (
-                    <Moon className="h-5 w-5" />
-                  ) : (
-                    <Sun className="h-5 w-5" />
-                  )}
-                </Button>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="rounded-lg pl-3 pr-2 h-10 gap-1 hover:bg-accent/50"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <UserCircle2 className="h-5 w-5 text-primary" />
-                        </div>
-                        <span className="font-medium text-foreground">{userName}</span>
-                      </div>
-                      <ChevronDown className="h-4 w-4 opacity-50" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 rounded-xl p-2">
-                    <DropdownMenuItem className="flex flex-col items-start gap-1 cursor-default rounded-lg p-3">
-                      <span className="font-medium text-foreground">{userName}</span>
-                      <span className="text-xs text-muted-foreground">{t.loggedIn}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="opacity-50" />
-                    <ChangePasswordDialog buttonText={t.changePassword} />
-                    <DropdownMenuItem
-                      onClick={logout}
-                      className="cursor-pointer text-destructive rounded-lg p-3 focus:bg-destructive/10"
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>{t.logout}</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </div>
             )}
           </div>
