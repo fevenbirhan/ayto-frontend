@@ -1,54 +1,33 @@
-# Welcome to your Lovable project
+# Crowdsourced Problem-Reporting platform (Addis Ababa) 🌍
 
-## Project info
+This project is designed for Addis Ababa, offering an inclusive solution to the city’s pressing challenges. The platform encourages public participation by empowering residents to report issues in real time, creating a direct line of communication between citizens and civil service offices. It improves accountability by allowing users to track report statuses, promoting transparency and prompt government responses.
 
-**URL**: https://lovable.dev/projects/76a0772f-a1bb-4bc3-af69-abf3427474c9
+**Backend Repository**: (https://github.com/Fiker11/ayto-backend)  
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## Features ✨
+- **Real-time issue reporting**: Residents can submit problems (e.g., potholes, waste management) with photos/locations.
+- **Transparency dashboard**: Track report statuses (e.g., "In Progress," "Resolved").
+- **User-friendly interface**: Built with React for seamless mobile/desktop use.
 
-**Use Lovable**
+## Tech Stack 🛠️
+- **Frontend**: React, React Router, Axios, TailwindCSS (or Material-UI)  
+- **Backend**: Java Spring Boot (see [backend repo](https://github.com/Fiker11/ayto-backend))  
+- **Database**: MySQL 
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/76a0772f-a1bb-4bc3-af69-abf3427474c9) and start prompting.
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
 # Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+git clone https://github.com/fevenbirhan/ayto-frontend.git
 
 # Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+cd ayto-frontend
 
 # Step 3: Install the necessary dependencies.
 npm i
 
 # Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
 
 ## What technologies are used for this project?
 
@@ -57,13 +36,5 @@ This project is built with .
 - Vite
 - TypeScript
 - React
-- shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/76a0772f-a1bb-4bc3-af69-abf3427474c9) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
